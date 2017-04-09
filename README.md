@@ -2,9 +2,11 @@
 
 ### Code Envrionment Usage:
 
-- ```
-  #download and restore my docker image
-  cd your_work_directory
+- ```bash
+  git clone https://github.com/Piping/rpvm && cd rpvm
+  #rpvm is your_work_directory now
+  #docker image for first time 
+  docker build -t arm docker
   make code # this will lead you to the coding environment
   make # this will look at Makefil @ your_work_directory and build
   make run # this will run qemu emulator to load and run your program
@@ -146,6 +148,8 @@
 - <stdint.h> to get the intx_t and uintx_t datatypes to make sure exact size 
 - <float.h>, <iso646.h>, <limits.h>, and <stdarg.h> headers.
 - GCC actually ships a few more headers, but these are special purpose.
+
+
 
 
 Acknoledgement

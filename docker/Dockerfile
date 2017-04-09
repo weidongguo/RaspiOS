@@ -19,4 +19,4 @@ ENV CROSS_PATH_armv7=/opt/linaro/gcc-linaro-6.3.1-2017.02-x86_64_arm-eabi \
 		CROSS_PATH_armv8=/opt/linaro/gcc-linaro-6.3.1-2017.02-x86_64_aarch64-elf
 ENV	PATH=$PATH:${CROSS_PATH_armv7}/bin:${CROSS_PATH_armv8}/bin
 
-COPY .zshrc /root/
+COPY zshrc.sh /root/.zshrc
