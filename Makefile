@@ -53,7 +53,7 @@ install : kernel7 bootcode.bin start.elf config.txt
 	echo 'unimplemented! copy files to sd card on real RP2'
 
 code:
-	docker run --rm --name arm -i -t -p 80:80 -p 8080:8080 -p 5900:5900/udp -p 5900:5900/tcp -v "$(shell pwd)":/work arm zsh
+	docker run --rm --name arm -i -t -p 5900:5900 -v "$(shell pwd)":/work arm zsh
 
 dockerbuildimage: ./docker/Dockerfile 
 	docker build -t arm docker
@@ -63,7 +63,7 @@ dockerupdateimage: ./docker/Dockerfile
 	docker attach arm
 
 clean :
-	rm -f *.o *.elf *.bin *.list
+	rm -f *.o *.elf *.bin *.list *.img
 
 # AS=as 
 # AR=ar 

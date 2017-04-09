@@ -1,0 +1,8 @@
+*/
+*.o 
+*.elf 
+*.bin 
+*.list 
+*.img
+*.md
+!README.md
