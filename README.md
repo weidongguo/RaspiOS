@@ -1,5 +1,7 @@
 # Raspberry Pi Bare Metal Programming
 
+[TOC]
+
 ### Code Envrionment Usage:
 
 - ```bash
@@ -150,9 +152,7 @@
 - GCC actually ships a few more headers, but these are special purpose.
 
 
-
-
-Acknoledgement
+### Acknowledgement
 
 - I used resources below, they are hepful
   - https://github.com/rsta2/circle
