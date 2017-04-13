@@ -22,6 +22,54 @@
 
 - inside docker Ctrl-p +Ctrl-q to detach from the shell, `docker attach arm` to get back code envrionment, `Ctrl+D`or type exit to leave and destory the container 
 
+### Git & Continuous Intergration
+
+- The way Travis works with pull requests is that it fetches the master repository, then merges the PR on top of it locally. That means that from the working copy, just looking which files changed since the last commit actually looks at the files changed during the merge.
+
+- [trigger test on last commit](https://github.com/DefinitelyTyped/DefinitelyTyped/issues/1314)
+
+- ####  Git Flow vs GitHub Flow vs Gitlab Flow
+
+  - practice **continuous delivery** means that your default branch can be deployed
+
+  - Git Flow:
+
+    - master / development branch seperation
+    - ![Git Flow](https://about.gitlab.com/images/git_flow/gitdashflow.png)
+    - difficulity arise in hotfix and patch that have to be applied to all branches
+
+  - Github Flow:
+
+    - master / feature branch seperation
+    - ![Github Flow](https://about.gitlab.com/images/git_flow/github_flow.png)
+    - Still leaves a lot of questions unanswered regarding deployments, environments, releases and integrations with issues.
+    - GitHub flow does assume you are able to deploy to production every time you merge a feature branch. This is possible for web developemnt. (SaaS)
+
+  - Gitlab Flow
+
+    -  Use Master / Production(Release) Branch 
+
+    - ![Simplest Form](https://about.gitlab.com/images/git_flow/production_branch.png)
+
+    - If you need a more exact time you can have your deployment script create a tag on each deployment.
+
+    - More Variant of Gitlab Flow
+
+      - https://about.gitlab.com/2014/09/29/gitlab-flow/
+      - ![Release Branch](https://about.gitlab.com/images/git_flow/release_branches.png)
+
+    - Git Command:
+
+      - ```bash
+        #create new branch, git branch mycode && git checkout mycode
+        git checkout -b mycode
+        #now at mycode branch, edit and add files and commit, after those 
+        git checkout master
+        git merge mycode
+        git push [origin...]
+        #wait for pull requets to be reviewed, tested, approved
+        ```
+
 ###  ARM CPU Family Clarify
 
 - The **Cortex M** series all fit into the **microcontroller** family, that is they are specifically optimised for smaller, specific, time-sensitive applications. Because they have a more specific job, they typically don't have as much memory.
@@ -70,6 +118,12 @@
 
   - [More Explaination](https://community.nxp.com/thread/313490)
 
+- ARM Assembly [Guide](http://www.peter-cockerell.net/aalp/html/frames.html)
+
+  - ![Computer System](http://www.peter-cockerell.net/aalp/html/images/fig1-1-hi.jpg)
+  - ​
+  - ​
+
 ### Emulation
 
 - armb == arm with big endian
@@ -84,22 +138,23 @@
     - `set $pc=0` to emulate software reset
     - `stepi`
     - Ctrl-D to exit
+#### qemu
 
-- #### qemu
+-  https://qemu.weilnetz.de/doc/qemu-doc.html#Display-options
 
-  - ***dtb*** stands for (device tree blob)
+  - **dtb*** stands for (device tree blob)
 
-  - ```bash
-    #To get and build the QEMU source code for RP2
+  - To get and build the QEMU source code for RP2
 
-    	git clone https://github.com/rsta2/qemu.git qemu
-    	cd qemu
-    	git submodule update --init dtc pixman
+    ```bash
+    git clone https://github.com/rsta2/qemu.git qemu
+    cd qemu
+    git submodule update --init dtc pixman
 
-    	mkdir build
-    	cd build
-    	../configure --target-list=arm-softmmu
-    	make
+    mkdir build
+    cd build
+    ../configure --target-list=arm-softmmu
+    make
     ```
 
   - These options enable specific features of QEMU

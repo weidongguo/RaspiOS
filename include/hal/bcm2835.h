@@ -18,21 +18,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _circle_bcm2835_h
-#define _circle_bcm2835_h
-
-#include <circle/sysconfig.h>
+#ifndef _rpvm_bcm2835_h
+#define _rpvm_bcm2835_h
 
 #if RASPPI == 1
-#define ARM_IO_BASE		0x20000000
+#define ARM_IO_BASE		0x20'000'000
 #else
-#define ARM_IO_BASE		0x3F000000
+#define ARM_IO_BASE		0x3F'000'000
 #endif
 
-#define GPU_IO_BASE		0x7E000000
+#define GPU_IO_BASE		0x7E'000'000
 
-#define GPU_CACHED_BASE		0x40000000
-#define GPU_UNCACHED_BASE	0xC0000000
+#define GPU_CACHED_BASE		0x40'000'000
+#define GPU_UNCACHED_BASE	0xC0'000'000
 
 #if RASPPI == 1
 	#ifdef GPU_L2_CACHE_ENABLED
@@ -47,30 +45,30 @@
 //
 // General Purpose I/O
 //
-#define ARM_GPIO_BASE		(ARM_IO_BASE + 0x200000)
+#define ARM_GPIO_BASE		     (ARM_IO_BASE + 0x200000)
 
-#define ARM_GPIO_GPFSEL0	(ARM_GPIO_BASE + 0x00)
-#define ARM_GPIO_GPFSEL1	(ARM_GPIO_BASE + 0x04)
-#define ARM_GPIO_GPFSEL4	(ARM_GPIO_BASE + 0x10)
-#define ARM_GPIO_GPSET0		(ARM_GPIO_BASE + 0x1C)
-#define ARM_GPIO_GPCLR0		(ARM_GPIO_BASE + 0x28)
-#define ARM_GPIO_GPLEV0		(ARM_GPIO_BASE + 0x34)
-#define ARM_GPIO_GPEDS0		(ARM_GPIO_BASE + 0x40)
-#define ARM_GPIO_GPREN0		(ARM_GPIO_BASE + 0x4C)
-#define ARM_GPIO_GPFEN0		(ARM_GPIO_BASE + 0x58)
-#define ARM_GPIO_GPHEN0		(ARM_GPIO_BASE + 0x64)
-#define ARM_GPIO_GPLEN0		(ARM_GPIO_BASE + 0x70)
-#define ARM_GPIO_GPAREN0	(ARM_GPIO_BASE + 0x7C)
-#define ARM_GPIO_GPAFEN0	(ARM_GPIO_BASE + 0x88)
-#define ARM_GPIO_GPPUD		(ARM_GPIO_BASE + 0x94)
-#define ARM_GPIO_GPPUDCLK0	(ARM_GPIO_BASE + 0x98)
+#define ARM_GPIO_GPFSEL0	   (ARM_GPIO_BASE + 0x00)
+#define ARM_GPIO_GPFSEL1	   (ARM_GPIO_BASE + 0x04)
+#define ARM_GPIO_GPFSEL4	   (ARM_GPIO_BASE + 0x10)
+#define ARM_GPIO_GPSET0		   (ARM_GPIO_BASE + 0x1C)
+#define ARM_GPIO_GPCLR0		   (ARM_GPIO_BASE + 0x28)
+#define ARM_GPIO_GPLEV0		   (ARM_GPIO_BASE + 0x34)
+#define ARM_GPIO_GPEDS0		   (ARM_GPIO_BASE + 0x40)
+#define ARM_GPIO_GPREN0		   (ARM_GPIO_BASE + 0x4C)
+#define ARM_GPIO_GPFEN0		   (ARM_GPIO_BASE + 0x58)
+#define ARM_GPIO_GPHEN0		   (ARM_GPIO_BASE + 0x64)
+#define ARM_GPIO_GPLEN0		   (ARM_GPIO_BASE + 0x70)
+#define ARM_GPIO_GPAREN0	   (ARM_GPIO_BASE + 0x7C)
+#define ARM_GPIO_GPAFEN0	   (ARM_GPIO_BASE + 0x88)
+#define ARM_GPIO_GPPUD		   (ARM_GPIO_BASE + 0x94)
+#define ARM_GPIO_GPPUDCLK0	 (ARM_GPIO_BASE + 0x98)
 
 //
 // UART0
 //
 #define ARM_UART0_BASE		(ARM_IO_BASE + 0x201000)
 
-#define ARM_UART0_DR		(ARM_UART0_BASE + 0x00)
+#define ARM_UART0_DR		  (ARM_UART0_BASE + 0x00)
 #define ARM_UART0_FR     	(ARM_UART0_BASE + 0x18)
 #define ARM_UART0_IBRD   	(ARM_UART0_BASE + 0x24)
 #define ARM_UART0_FBRD   	(ARM_UART0_BASE + 0x28)

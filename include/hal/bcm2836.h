@@ -19,10 +19,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-//#ifndef _circle_bcm2836_h
-//#define _circle_bcm2836_h
+#ifndef _rpvm_bcm2836_h
+#define _rpvm_bcm2836_h
 
-//#if RASPPI >= 2
+#if RASPPI >= 2
 
 #define ARM_LOCAL_BASE			0x40000000
 
@@ -99,6 +99,6 @@
 #define ARM_LOCAL_MAILBOX2_CLR3		(ARM_LOCAL_BASE + 0x0F8)
 #define ARM_LOCAL_MAILBOX3_CLR3		(ARM_LOCAL_BASE + 0x0FC)
 
-//#endif
+#endif
 
-//#endif
+#endif

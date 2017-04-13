@@ -1,28 +1,42 @@
 #for Raspberry PI 2
-ARMA7  = arm-eabi
+ARMA7    = arm-eabi
 ARCH_PI2 = -march=armv7-a -mfpu=vfp -mfloat-abi=hard -mtune=cortex-a7
 #for Raspberry PI 3
-ARMA53 = aarch64-elf
+ARMA53   = aarch64-elf
 ARCH_PI3 = -march=armv8-a -mtune=cortex-a53 -mlittle-endian -mcmodel=small
 
-ARM  = $(ARMA7)
-ARCH = $(ARCH_PI2)
+RASPPI	?= 2
 
-AS=$(ARM)-as 
-AR=$(ARM)-ar
-CC=$(ARM)-gcc
-CPP=$(ARM)-cpp
-CXX=$(ARM)-g++
-LD=$(ARM)-ld
+ifeq ($(strip $(RASPPI)),2)
+ARM  ?= $(ARMA7)
+ARCH ?= $(ARCH_PI2)
+else ifeq ($(strip $(RASPPI)),3)
+ARM  ?= $(ARMA53)
+ARCH ?= $(ARCH_PI3)
+endif
 
-#AOPS = --warn --fatal-warnings $(ARCH)
-CFLAGS	 += $(ARCH) -Wall -O2 -nostdlib -nostartfiles -ffreestanding 
-CPPFLAGS += $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
+AS  = $(ARM)-as
+AR  = $(ARM)-ar
+CC  = $(ARM)-gcc
+#C preprocessor
+CPP = $(ARM)-cpp 
+#C++ compiler
+CXX = $(ARM)-g++
+LD  = $(ARM)-ld
 
-default_target: kernel7
+#strip Removes leading and trailing whitespace from string and replaces each internal sequence of one or more whitespace characters with a single space. 
+RPVMHOME  ?= .
+INCLUDE	  += -I $(RPVMHOME)/include 
+OPTIMIZE  ?= -O2
+DEBUG     ?= -DDEBUG -g
+BAREMETAL ?= -Wall -nostdlib -nostartfiles -ffreestanding
+CFLAGS	  += $(ARCH) $(INCLUDE) $(OPTIMIZE) $(DEBUG) $(BAREMETAL) -DRASPPI=$(RASPPI) 
+CPPFLAGS  += $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
 
-kernel7 : clean kernel7.o boot.o memmap
-	$(ARM)-ld $@.o boot.o -T memmap -o $@.elf
+.PHONY: kernel7 prerequiste clean run runimg install code dockerbuildimage dockerupdateimage
+
+kernel7 : clean prerequiste kernel7.o $(RPVMHOME)/lib/boot.o memmap
+	$(ARM)-ld $@.o $(RPVMHOME)/lib/*.a $(RPVMHOME)/lib/boot.o -T memmap -o $@.elf
 	$(ARM)-objdump -D $@.elf > $@.list
 	$(ARM)-objcopy $@.elf -O binary $@.img
 
@@ -33,7 +47,10 @@ kernel7 : clean kernel7.o boot.o memmap
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cpp
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) -c -o $@ $<
+
+prerequiste:
+	$(MAKE) -C lib 
 
 run : 
 	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel7.elf
@@ -64,6 +81,9 @@ dockerupdateimage: ./docker/Dockerfile
 
 clean :
 	rm -f *.o *.elf *.bin *.list *.img
+
+cleanall: clean
+	$(MAKE) -C lib clean
 
 # AS=as 
 # AR=ar 
