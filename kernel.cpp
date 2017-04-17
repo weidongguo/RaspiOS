@@ -95,6 +95,7 @@ TShutdownMode CKernel::Run (void)
 		nTime = m_Timer.GetTime ();
 
 		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
+
     uart_puts("Time is here\r");
 	}
 
