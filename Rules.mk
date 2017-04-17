@@ -48,9 +48,12 @@ OPTIMIZE ?= -O2
 
 INCLUDE	+= -I $(CIRCLEHOME)/include -I $(CIRCLEHOME)/addon -I $(CIRCLEHOME)/app/lib
 
+DEBUG   ?= -DDEBUG -g
+
 AFLAGS	+= $(ARCH) -DRASPPI=$(RASPPI) $(INCLUDE)
-CFLAGS	+= $(ARCH) -Wall -fsigned-char -fno-builtin -nostdinc -nostdlib \
-	   -D__circle__ -DRASPPI=$(RASPPI) $(INCLUDE) $(OPTIMIZE) -g #-DNDEBUG
+
+CFLAGS	+= $(ARCH) -Wall -fsigned-char -fno-builtin -nostdinc -nostdlib -D__circle__ -DRASPPI=$(RASPPI) $(INCLUDE) $(OPTIMIZE) $(DEBUG)
+
 CPPFLAGS+= $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
 
 %.o: %.S
@@ -68,5 +71,37 @@ $(TARGET).img: $(OBJS) $(LIBS) $(CIRCLEHOME)/lib/startup.o $(CIRCLEHOME)/circle.
 	$(PREFIX)objcopy $(TARGET).elf -O binary $(TARGET).img
 	wc -c $(TARGET).img
 
+.PHONY: all,clean,cleanall,run,runimg,install,dockerenv,dockerbuildimage,dockerupdateimage,code
+
 clean:
 	rm -f *.o *.a *.elf *.lst *.img *.cir *.map *~ $(EXTRACLEAN)
+
+run : 
+	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel7.elf
+
+runimg :
+	qemu-system-arm -M raspi2 -m 128M -bios kernel7.img
+
+#FILES DURING PI BOOT PROCESS
+bootcode.bin :
+	wget -nc https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/bootcode.bin
+start.elf :
+	wget -nc https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/start.elf	 
+config.txt :
+	echo '' > config.txt
+
+install : kernel7 bootcode.bin start.elf config.txt 
+	echo 'unimplemented! copy files to sd card on real RP2'
+
+dockerenv:
+	test ! -f /.dockerenv # echo 'Run the command outside the docker container!'
+
+code : dockerenv
+	docker run --rm --name arm -i -t -p 5900:5900 -v "$(shell pwd)":/work arm zsh
+
+dockerbuildimage : dockerenv ./docker/Dockerfile 
+	docker build -t arm docker
+
+dockerupdateimage : dockerenv ./docker/Dockerfile
+	docker commit arm
+	docker attach arm

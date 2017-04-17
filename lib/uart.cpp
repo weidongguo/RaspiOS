@@ -1,7 +1,6 @@
 #include <hal/uart.h>
-#include <hal/bcm2835.h>
-#include <hal/bcm2836.h> 
-//#include <hal/memio.h>
+#include <circle/bcm2835.h>
+#include <circle/bcm2836.h>
 #include <circle/types.h>
 #include <circle/memio.h>
 
