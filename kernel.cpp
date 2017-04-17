@@ -18,6 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
+#include <hal/uart.h>
 
 static const char FromKernel[] = "kernel";
 
@@ -68,6 +69,8 @@ boolean CKernel::Initialize (void)
 		bOK = m_Timer.Initialize ();
 	}
 
+  uart_init();
+
 	return bOK;
 }
 
@@ -92,6 +95,8 @@ TShutdownMode CKernel::Run (void)
 		nTime = m_Timer.GetTime ();
 
 		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
+
+    uart_puts("Time is here\r");
 	}
 
 	return ShutdownHalt;
