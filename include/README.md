@@ -1,7 +1,7 @@
 ## Directory Introduction
 
 - include  — library header path
-  - hal — hardware abstraction layer
+  - hal — hardware abstraction layer (now treat Circle as HAL)
   - rpvm — functionality above HAL
 
 ## Why using BCM2835?
