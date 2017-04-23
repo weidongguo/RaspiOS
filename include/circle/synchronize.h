@@ -51,72 +51,72 @@ void LeaveCritical (void);
 
 #if RASPPI == 1
 
-//
-// Cache control
-//
-#define InvalidateInstructionCache()	\
-				asm volatile ("mcr p15, 0, %0, c7, c5,  0" : : "r" (0) : "memory")
-#define FlushPrefetchBuffer()	asm volatile ("mcr p15, 0, %0, c7, c5,  4" : : "r" (0) : "memory")
-#define FlushBranchTargetCache()	\
-				asm volatile ("mcr p15, 0, %0, c7, c5,  6" : : "r" (0) : "memory")
+	//
+	// Cache control
+	//
+	#define InvalidateInstructionCache()	\
+					asm volatile ("mcr p15, 0, %0, c7, c5,  0" : : "r" (0) : "memory")
+	#define FlushPrefetchBuffer()	asm volatile ("mcr p15, 0, %0, c7, c5,  4" : : "r" (0) : "memory")
+	#define FlushBranchTargetCache()	\
+					asm volatile ("mcr p15, 0, %0, c7, c5,  6" : : "r" (0) : "memory")
 
-// NOTE: Data cache operations include a DataSyncBarrier
-#define InvalidateDataCache()	asm volatile ("mcr p15, 0, %0, c7, c6,  0\n" \
-					      "mcr p15, 0, %0, c7, c10, 4\n" : : "r" (0) : "memory")
-#define CleanDataCache()	asm volatile ("mcr p15, 0, %0, c7, c10, 0\n" \
-					      "mcr p15, 0, %0, c7, c10, 4\n" : : "r" (0) : "memory")
+	// NOTE: Data cache operations include a DataSyncBarrier
+	#define InvalidateDataCache()	asm volatile ("mcr p15, 0, %0, c7, c6,  0\n" \
+						      "mcr p15, 0, %0, c7, c10, 4\n" : : "r" (0) : "memory")
+	#define CleanDataCache()	asm volatile ("mcr p15, 0, %0, c7, c10, 0\n" \
+						      "mcr p15, 0, %0, c7, c10, 4\n" : : "r" (0) : "memory")
 
-void CleanAndInvalidateDataCacheRange (u32 nAddress, u32 nLength) MAXOPT;
+	void CleanAndInvalidateDataCacheRange (u32 nAddress, u32 nLength) MAXOPT;
 
-void SyncDataAndInstructionCache (void);
+	void SyncDataAndInstructionCache (void);
 
-//
-// Barriers
-//
-#define DataSyncBarrier()	asm volatile ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory")
-#define DataMemBarrier() 	asm volatile ("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory")
+	//
+	// Barriers
+	//
+	#define DataSyncBarrier()	asm volatile ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory")
+	#define DataMemBarrier() 	asm volatile ("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory")
 
-#define InstructionSyncBarrier() FlushPrefetchBuffer()
-#define InstructionMemBarrier()	FlushPrefetchBuffer()
+	#define InstructionSyncBarrier() FlushPrefetchBuffer()
+	#define InstructionMemBarrier()	FlushPrefetchBuffer()
 
-// According to the "BCM2835 ARM Peripherals" document pg. 7 the BCM2835
-// requires to insert barriers before writing and after reading to/from
-// a peripheral for in-order processing of data transferred on the AXI bus.
-#define PeripheralEntry()	DataSyncBarrier()
-#define PeripheralExit()	DataMemBarrier()
+	// According to the "BCM2835 ARM Peripherals" document pg. 7 the BCM2835
+	// requires to insert barriers before writing and after reading to/from
+	// a peripheral for in-order processing of data transferred on the AXI bus.
+	#define PeripheralEntry()	DataSyncBarrier()
+	#define PeripheralExit()	DataMemBarrier()
 
 #else
 
-//
-// Cache control
-//
-#define InvalidateInstructionCache()	\
-				asm volatile ("mcr p15, 0, %0, c7, c5,  0" : : "r" (0) : "memory")
-#define FlushPrefetchBuffer()	asm volatile ("isb" ::: "memory")
-#define FlushBranchTargetCache()	\
-				asm volatile ("mcr p15, 0, %0, c7, c5,  6" : : "r" (0) : "memory")
+	//
+	// Cache control
+	//
+	#define InvalidateInstructionCache()	\
+					asm volatile ("mcr p15, 0, %0, c7, c5,  0" : : "r" (0) : "memory")
+	#define FlushPrefetchBuffer()	asm volatile ("isb" ::: "memory")
+	#define FlushBranchTargetCache()	\
+					asm volatile ("mcr p15, 0, %0, c7, c5,  6" : : "r" (0) : "memory")
 
-// cache-v7.S
-//
-// NOTE: Data cache operations include a DataSyncBarrier
-void InvalidateDataCacheL1Only (void);
-void InvalidateDataCache (void);
-void CleanDataCache (void);
-void CleanAndInvalidateDataCacheRange (u32 nAddress, u32 nLength);
+	// cache-v7.S
+	//
+	// NOTE: Data cache operations include a DataSyncBarrier
+	void InvalidateDataCacheL1Only (void);
+	void InvalidateDataCache (void);
+	void CleanDataCache (void);
+	void CleanAndInvalidateDataCacheRange (u32 nAddress, u32 nLength);
 
-void SyncDataAndInstructionCache (void);
+	void SyncDataAndInstructionCache (void);
 
-//
-// Barriers
-//
-#define DataSyncBarrier()	asm volatile ("dsb" ::: "memory")
-#define DataMemBarrier() 	asm volatile ("dmb" ::: "memory")
+	//
+	// Barriers
+	//
+	#define DataSyncBarrier()	asm volatile ("dsb" ::: "memory")
+	#define DataMemBarrier() 	asm volatile ("dmb" ::: "memory")
 
-#define InstructionSyncBarrier() asm volatile ("isb" ::: "memory")
-#define InstructionMemBarrier()	asm volatile ("isb" ::: "memory")
+	#define InstructionSyncBarrier() asm volatile ("isb" ::: "memory")
+	#define InstructionMemBarrier()	asm volatile ("isb" ::: "memory")
 
-#define PeripheralEntry()	((void) 0)	// ignored here
-#define PeripheralExit()	((void) 0)
+	#define PeripheralEntry()	((void) 0)	// ignored here
+	#define PeripheralExit()	((void) 0)
 
 #endif
 

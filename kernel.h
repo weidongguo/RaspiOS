@@ -34,35 +34,38 @@
 
 enum TShutdownMode
 {
-	ShutdownNone,
-	ShutdownHalt,
-	ShutdownReboot
+  ShutdownNone,
+  ShutdownHalt,
+  ShutdownReboot
 };
 
 class CKernel
 {
 public:
-	CKernel (void);
-	~CKernel (void);
+  CKernel (void);
+  ~CKernel (void);
 
-	boolean Initialize (void);
+  boolean Initialize (void);
 
-	TShutdownMode Run (void);
-	
-	static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
+  TShutdownMode Run (void);
+  
+private:
+  static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
+  static void ThreadWorker(int n, void *kernel);
 
 private:
-	// do not change this order
-	CMemorySystem		m_Memory;
-	CActLED			m_ActLED;
-	CKernelOptions		m_Options;
-	CDeviceNameService	m_DeviceNameService;
-	CScreenDevice		m_Screen;
-	CSerialDevice		m_Serial;
-	CExceptionHandler	m_ExceptionHandler;
-	CInterruptSystem	m_Interrupt;
-	CTimer			m_Timer;
-	CLogger			m_Logger;
+  // do not change this order
+  CMemorySystem      m_Memory;
+  CActLED            m_ActLED;
+  CKernelOptions     m_Options;
+  CDeviceNameService m_DeviceNameService;
+  CScreenDevice      m_Screen;
+  CSerialDevice      m_Serial;
+  CExceptionHandler  m_ExceptionHandler;
+  CInterruptSystem   m_Interrupt;
+  CTimer             m_Timer;
+  CLogger            m_Logger;
+  //CMultiCoreKernel   m_MultiCoreKernel;  
 };
 
 #endif

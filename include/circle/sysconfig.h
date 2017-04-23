@@ -30,7 +30,7 @@
 #define PAGE_SIZE		4096				// page size used by us
 
 #define KERNEL_MAX_SIZE		(2 * MEGABYTE)			// all sizes must be a multiple of 16K
-#define KERNEL_STACK_SIZE	0x8000
+#define KERNEL_STACK_SIZE	0x20000
 #define EXCEPTION_STACK_SIZE	0x8000
 #define PAGE_TABLE1_SIZE	0x4000
 #define PAGE_RESERVE		(4 * MEGABYTE)
@@ -67,7 +67,7 @@
 //#define USE_RPI_STUB_AT 	0x1F000000	// debug with rpi_stub
 
 #ifndef USE_RPI_STUB_AT
-//#define ARM_ALLOW_MULTI_CORE	// slower on single core if defined
+#define ARM_ALLOW_MULTI_CORE	// slower on single core if defined
 
 //#define USE_QEMU_USB_FIX	// for QEMU use only
 #endif
@@ -77,14 +77,14 @@
 //#define REALTIME
 
 #define MAX_TASKS		20
-#define TASK_STACK_SIZE		0x4000
+#define TASK_STACK_SIZE		0x8000
 
 // default keyboard map (enable only one)
-#define DEFAULT_KEYMAP		"DE"
+//#define DEFAULT_KEYMAP		"DE"
 //#define DEFAULT_KEYMAP		"ES"
 //#define DEFAULT_KEYMAP		"FR"
 //#define DEFAULT_KEYMAP		"IT"
 //#define DEFAULT_KEYMAP		"UK"
-//#define DEFAULT_KEYMAP		"US"
+#define DEFAULT_KEYMAP		"US"
 
 #endif

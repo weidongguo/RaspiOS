@@ -18,7 +18,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
-#include <hal/uart.h>
 
 static const char FromKernel[] = "kernel";
 
@@ -56,7 +55,7 @@ boolean CKernel::Initialize (void)
 			pTarget = &m_Screen;
 		}
 
-		bOK = m_Logger.Initialize (pTarget);
+		bOK = m_Logger.Initialize (&m_Serial);
 	}
 
 	if (bOK)
@@ -68,49 +67,109 @@ boolean CKernel::Initialize (void)
 	{
 		bOK = m_Timer.Initialize ();
 	}
-
-  uart_init();
-
+    // if (bOK)
+    // {
+    //     bOK = m_MultiCoreKernel.Initialize ();   // must be initialized at last
+    // }
 	return bOK;
 }
+
+#if 1
+
+#include "thread.cpp"
+
+#endif
+
+static thread_t s_thread;
+static thread_t main_thread;
+
+//maybe let scheduler setup the first thread(main)'s context
+//this is used for finding the TCB/Thread during scheduling
+static thread_t *RUNNING_THREAD_ON_CORE[1] = {&main_thread};
+
+static TCB main_tcb = TCB();
+
+#include <circle/multicore.h>
 
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
+        //thread_create(&(threads[0]),&ThreadWorker,5,this);
+        thread_t * thread = &s_thread;
 
-	m_Logger.Write (FromKernel, LogNotice, "An exception will occur after 15 seconds from now");
+        TCB *tcb = new TCB();
+        thread->tcb = tcb;
+        tcb->stack_size = TASK_STACK_SIZE;
+        tcb->stack  =  new u8[TASK_STACK_SIZE]; //new Stack();
+        memset (&(tcb->regs), 0, sizeof(tcb->regs));
+        //stack grow downward
+        tcb->regs.sp = (size_t) tcb->stack + TASK_STACK_SIZE;
+        tcb->regs.lr = (size_t) stub;
 
-	// start timer to elapse after 15 seconds
-	m_Timer.StartKernelTimer (15 * HZ, TimerHandler);
+        tcb->regs.r0 = (size_t) ThreadWorker;
+        tcb->regs.r1 = (size_t) 5;
+        tcb->regs.r2 = (size_t) this;
+        tcb->state = THREAD_READY;
 
-	// generate a log message every second
-	unsigned nTime = m_Timer.GetTime ();
-	while (1)
-	{
-		while (nTime == m_Timer.GetTime ())
-		{
-			// just wait a second
-		}
+        //thread_yield part 
+        //thread_t *curThread = RUNNING_THREAD_ON_CORE[CMultiCoreSupport::ThisCore()];
+        //&(curThread->tcb->regs)
+        TaskSwitch(&(main_tcb.regs),&(tcb->regs)); //SaveLoadSwitch
 
-		nTime = m_Timer.GetTime ();
-
-		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
-
-    uart_puts("Time is here\r");
-	}
-
+        long exitValue = 1;//thread_join(&(threads[0]));
+        m_Logger.Write (FromKernel, LogNotice,"Thread %d returned with %ld\n",0,exitValue);
 	return ShutdownHalt;
 }
 
+void 
+CKernel::ThreadWorker(int i, void *ker){
+    CKernel *kernel = (CKernel *) ker;
+    kernel->m_Logger.Write (FromKernel, LogNotice,"Hello from thread %d \n",i);    
+    TaskSwitch(&(s_thread.tcb->regs),&(main_tcb.regs));
+    //thread_exit(100+i);
+}
+
+
+class CMultiCoreKernel : public CMultiCoreSupport
+{
+public:
+    CMultiCoreKernel (CScreenDevice *pScreen, CMemorySystem *pMemorySystem);
+    ~CMultiCoreKernel (void);
+
+    boolean Initialize (void)   { return TRUE; }
+
+    void Run (unsigned nCore) {
+
+
+    }
+
+private:
+
+private:
+    CScreenDevice *m_pScreen;
+};
+
+
+
+
+
+
+
+
+
+
+
+
 void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
 {
-#if 1
-	// jump to an invalid address (execution is only allowed below _etext, see circle.ld)
-	void (*pInvalid) (void) = (void (*) (void)) 0x500000;
+    #if 1
+    	// jump to an invalid address (execution is only allowed below _etext, see circle.ld)
+    	void (*pInvalid) (void) = (void (*) (void)) 0x500000;
 
-	(*pInvalid) ();
-#else
-	// alternatively execute an undefined instruction
-	asm volatile (".word 0xFF000000");
-#endif
+    	(*pInvalid) ();
+    #else
+    	// alternatively execute an undefined instruction
+    	asm volatile (".word 0xFF000000");
+    #endif
 }
+

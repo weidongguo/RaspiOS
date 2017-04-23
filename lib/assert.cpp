@@ -26,7 +26,7 @@
 #include <circle/debug.h>
 #include <circle/types.h>
 
-#ifndef NDEBUG
+#ifdef DEBUG
 
 void assertion_failed (const char *pExpr, const char *pFile, unsigned nLine)
 {

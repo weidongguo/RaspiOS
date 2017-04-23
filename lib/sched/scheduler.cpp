@@ -174,7 +174,7 @@ void CScheduler::WakeTask (CTask **ppTask)
 
 	*ppTask = 0;
 
-#ifdef NDEBUG
+#ifndef DEBUG
 	if (   pTask == 0
 	    || pTask->GetState () != TaskStateBlocked)
 	{
