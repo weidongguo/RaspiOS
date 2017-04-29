@@ -1,9 +1,9 @@
-*/
+
 *.a
-*.o 
-*.elf 
-*.bin 
-*.list 
+*.o
+*.elf
+*.bin
+*.list
 *.img
 *.md
 .DS_Store
