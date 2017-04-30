@@ -74,9 +74,6 @@ boolean CKernel::Initialize (void)
 	return bOK;
 }
 
-Thread *main_thread;
-Thread *t0;
-
 void bar(void){
   uart_puts("in bar()\r\n");
 }
@@ -85,7 +82,7 @@ void foo(void){
   uart_puts("in foo()\r\n");
   bar();
   uart_puts("after bar()\r\n");
-  ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
+  //ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
 }
 
 
@@ -98,16 +95,10 @@ TShutdownMode CKernel::Run (void)
 	// start timer to elapse after 15 seconds
 	m_Timer.StartKernelTimer (15 * HZ, TimerHandler);
 
-  // TODO: Figure out why can't just instantiate it locally.
-  main_thread = new Thread();
+  ThreadManager *tm = new ThreadManager(); 
   
-  t0 = new Thread();
+  tm->thread_switch(tm->getCurrentThread(), tm->thread_create(foo, tm));
   
- 
-  main_thread->thread_create(foo);
-  t0->thread_create(foo);
-
-  ContextSwitch(&main_thread->tcb->regs, &t0->tcb->regs);
   
   uart_puts("back here bro!\r\n");
 	// generate a log message every second

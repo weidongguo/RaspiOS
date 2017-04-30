@@ -23,16 +23,24 @@ struct TCB {
 typedef void (thread_handler_t)();
 
 class Thread {
-  // thread state may changed by other threads
-  public:
+   public:
     TCB *tcb;
     size_t id;
+  
+};
+class ThreadManager {
     
+  private:
+    Thread mainThread;
+    Thread *currentThread;
+    Thread *parentThread;
+
   public:
+    ThreadManager();
     /*
     Create  a new thread, storing information about it  in  thread. Concurrently with the calling thread, thread  executes  the function  func  with the argument arg.
     */
-    void thread_create(thread_handler_t func);
+    Thread* thread_create(thread_handler_t func, ThreadManager *tm);
 
     /*
     The calling thread  voluntarily gives up  the processor to  let some  other thread(s) run.
@@ -53,7 +61,10 @@ class Thread {
     */
     void thread_exit();
 
-
+   
+    void thread_switch(Thread *from, Thread *to);
+    Thread * getCurrentThread();
+    Thread * getParentThread();
 
 };
 
