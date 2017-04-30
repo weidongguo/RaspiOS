@@ -4,7 +4,7 @@
 
 CIRCLEHOME = .
 
-OBJS	= main.o kernel.o
+OBJS	= main.o kernel.o contextswitch.o thread.o
 
 LIBS	= $(CIRCLEHOME)/lib/libcircle.a
 

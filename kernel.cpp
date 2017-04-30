@@ -18,12 +18,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
+#include "contextswitch.h"
+#include "thread.h"
 #include <hal/uart.h>
 
 static const char FromKernel[] = "kernel";
-
-CKernel::CKernel (void)
-:	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
+CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
 	m_Logger (m_Options.GetLogLevel (), &m_Timer)
 {
@@ -74,6 +74,21 @@ boolean CKernel::Initialize (void)
 	return bOK;
 }
 
+Thread *main_thread;
+Thread *t0;
+
+void bar(void){
+  uart_puts("in bar()\r\n");
+}
+
+void foo(void){
+  uart_puts("in foo()\r\n");
+  bar();
+  uart_puts("after bar()\r\n");
+  ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
+}
+
+
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
@@ -83,8 +98,20 @@ TShutdownMode CKernel::Run (void)
 	// start timer to elapse after 15 seconds
 	m_Timer.StartKernelTimer (15 * HZ, TimerHandler);
 
+  // TODO: Figure out why can't just instantiate it locally.
+  main_thread = new Thread();
+  
+  t0 = new Thread();
+  
+ 
+  main_thread->thread_create(foo);
+  t0->thread_create(foo);
+
+  ContextSwitch(&main_thread->tcb->regs, &t0->tcb->regs);
+  
+  uart_puts("back here bro!\r\n");
 	// generate a log message every second
-	unsigned nTime = m_Timer.GetTime ();
+  unsigned nTime = m_Timer.GetTime ();
 	while (1)
 	{
 		while (nTime == m_Timer.GetTime ())
