@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2014  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
+#include "myTask.h"
 #include <hal/uart.h>
 
 static const char FromKernel[] = "kernel";
@@ -76,6 +77,26 @@ boolean CKernel::Initialize (void)
 
 TShutdownMode CKernel::Run (void)
 {
+
+	myTask *task1 = new myTask('1');
+	m_Scheduler.Sleep(1);
+	myTask *task2 = new myTask('2');
+	m_Scheduler.Sleep(1);
+	myTask *task3 = new myTask('3');
+	m_Scheduler.Sleep(1);
+	myTask *task4 = new myTask('4');
+	m_Scheduler.Sleep(1);
+	myTask *task5 = new myTask('5');
+	m_Scheduler.Sleep(1);
+	myTask *task6 = new myTask('6');
+
+	while(1){
+	  uart_puts("main");
+
+	  m_Scheduler.Sleep(15);
+	}
+
+
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
 	m_Logger.Write (FromKernel, LogNotice, "An exception will occur after 15 seconds from now");
@@ -104,6 +125,7 @@ TShutdownMode CKernel::Run (void)
 
 void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
 {
+	///*
 #if 1
 	// jump to an invalid address (execution is only allowed below _etext, see circle.ld)
 	void (*pInvalid) (void) = (void (*) (void)) 0x500000;
@@ -113,4 +135,6 @@ void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
 	// alternatively execute an undefined instruction
 	asm volatile (".word 0xFF000000");
 #endif
+//*/
+//m_Scheduler.Yield();
 }
