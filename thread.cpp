@@ -3,7 +3,6 @@
 #include <circle/util.h>
 #include <circle/synchronize.h>
 
-#include "contextswitch.h"
 #include "thread.h"
 
 void stub(thread_handler_t func, ThreadManager *tm){

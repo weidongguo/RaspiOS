@@ -4,6 +4,8 @@
 #define MB                  1048576
 #define DEFAULT_STACK_SIZE  MB
 
+#include "contextswitch.h"
+
 enum THREAD_STATE
 {
   THREAD_INIT,
@@ -20,7 +22,7 @@ struct TCB {
   u8           *stack;
 };
 
-typedef void (thread_handler_t)();
+typedef void (*thread_handler_t)();
 
 class Thread {
    public:

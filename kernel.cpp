@@ -25,7 +25,8 @@
 static const char FromKernel[] = "kernel";
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
-	m_Logger (m_Options.GetLogLevel (), &m_Timer)
+	m_Logger (m_Options.GetLogLevel (), &m_Timer),
+  m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 {
 	m_ActLED.Blink (5);	// show we are alive
 }
@@ -69,27 +70,27 @@ boolean CKernel::Initialize (void)
 		bOK = m_Timer.Initialize ();
 	}
 
+  if (bOK)
+  {
+    bOK = m_CoreManager.Initialize();
+  }
+
   uart_init();
 
 	return bOK;
 }
 
-void bar(void){
-  uart_puts("in bar()\r\n");
-}
 
-void foo(void){
-  uart_puts("in foo()\r\n");
-  bar();
-  uart_puts("after bar()\r\n");
+void coreTestFunct(CLogger *pLogger, int coreID){
   //ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
+    pLogger->Write("Core", LogNotice, "Core %d is running", coreID);
 }
 
 
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
-
+  /*
 	m_Logger.Write (FromKernel, LogNotice, "An exception will occur after 15 seconds from now");
 
 	// start timer to elapse after 15 seconds
@@ -116,6 +117,13 @@ TShutdownMode CKernel::Run (void)
 
     uart_puts("Time is here\r");
 	}
+  */
+  m_CoreManager.funct[0] = coreTestFunct;
+  m_CoreManager.funct[1] = coreTestFunct;
+  m_CoreManager.funct[2] = coreTestFunct;
+  m_CoreManager.funct[3] = coreTestFunct;
+
+  m_CoreManager.Run(0);
 
 	return ShutdownHalt;
 }

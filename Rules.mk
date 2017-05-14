@@ -56,6 +56,8 @@ CFLAGS	+= $(ARCH) -Wall -fsigned-char -fno-builtin -nostdinc -nostdlib -D__circl
 
 CPPFLAGS+= $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
 
+FLASH_DEST = /media/weidongguo/boot
+
 %.o: %.S
 	$(AS) $(AFLAGS) -c -o $@ $<
 
@@ -90,8 +92,10 @@ start.elf :
 config.txt :
 	echo '' > config.txt
 
-install : kernel7 bootcode.bin start.elf config.txt 
-	echo 'unimplemented! copy files to sd card on real RP2'
+install : $(TARGET).img bootcode.bin start.elf config.txt 
+	cp $(TARGET).img $(FLASH_DEST)
+#	echo 'unimplemented! copy files to sd card on real RP2'
+  
 
 dockerenv:
 	test ! -f /.dockerenv # echo 'Run the command outside the docker container!'
