@@ -34,7 +34,8 @@ CKernelOptions::CKernelOptions (void)
 	m_CPUSpeed (CPUSpeedLow),
 	m_nSoCMaxTemp (60)
 {
-	strcpy (m_LogDevice, "tty1");
+	//strcpy (m_LogDevice, "tty1"); 
+	strcpy (m_LogDevice, "ttyS1");
 	strcpy (m_KeyMap, DEFAULT_KEYMAP);
 
 	s_pThis = this;

@@ -25,6 +25,11 @@
 #include <circle/memory.h>
 #include <circle/types.h>
 #include <circle/logger.h>
+#include <circle/bcm2836.h>
+#include <assert.h>
+#include <circle/memio.h>
+#include <circle/startup.h>
+
 #include "thread.h"
 
 typedef void (*core_handler_t)(CLogger*, int);
@@ -44,7 +49,16 @@ public:
 
 	void Run (unsigned nCore);
 
-  core_handler_t funct[CORES]; 
+	// Override.
+	void IPIHandler (unsigned nCore, unsigned nIPI);	// handles IPI on this core
+
+	void AssignTask(unsigned int coreNum, core_handler_t funct);
+
+	void WakeUp(unsigned int coreNum);
+
+
+  	core_handler_t funct[CORES]; 
+
   
 
 private:

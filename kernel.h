@@ -66,7 +66,7 @@ private:
 	CTimer			m_Timer;
 	CLogger			m_Logger;
 
-  CoreManager m_CoreManager;
+	CoreManager m_CoreManager;
 };
 
 #endif

@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
 #include "CoreManager.h"
 
 #define MAX_ITERATION	5000
@@ -37,7 +38,7 @@ CoreManager::CoreManager (CLogger *pLogger, CScreenDevice *pScreen, CMemorySyste
 CoreManager::~CoreManager (void)
 {
 	m_pScreen = 0;
-  m_pLogger = 0;
+  	m_pLogger = 0;
 }
 
 void CoreManager::Run (unsigned coreNumber)
@@ -45,15 +46,42 @@ void CoreManager::Run (unsigned coreNumber)
 #ifdef ARM_ALLOW_MULTI_CORE
 	unsigned nQuarterHeight = m_pScreen->GetHeight () / 4;
 
-  m_pLogger->Write("CoreManager", LogNotice, "core is running\n");  
+	m_pLogger->Write("CoreManager", LogNotice, "core %d is running\n", coreNumber);  
  	
-  if(funct[coreNumber])
-	  funct[coreNumber](m_pLogger, coreNumber);
+  	if(funct[coreNumber])
+	  	funct[coreNumber](m_pLogger, coreNumber);
 
  
 #else
-  funct[0];	
+  	funct[0](m_pLogger, coreNumber);	
 #endif
+  	if(coreNumber != 0)
+  		SendIPI(coreNumber, IPI_HALT_CORE);
+}
+
+// Override.
+void CoreManager::IPIHandler (unsigned nCore, unsigned nIPI)
+{
+	assert (nCore < CORES);
+	assert (nIPI < 32);
+
+	if (nIPI == IPI_HALT_CORE)
+	{
+		CLogger::Get ()->Write ("FromMultiCore", LogDebug, "Bro CPU core %u will halt now", nCore);
+
+		halt ();
+	} else {
+		CLogger::Get ()->Write ("FromMultiCore", LogDebug, "No case found");
+	}
+}
+
+void CoreManager::AssignTask(unsigned int nCore, core_handler_t funct) {
+  if(nCore >= 0 && nCore <= 3)
+    write32 (ARM_LOCAL_MAILBOX3_SET0 + 0x10 * nCore, (u32) funct);
+}
+
+void CoreManager::WakeUp(unsigned int coreNum) {
+	SendIPI(coreNum, IPI_HALT_CORE + 1);
 }
 
 // See: http://en.wikipedia.org/wiki/Mandelbrot_set

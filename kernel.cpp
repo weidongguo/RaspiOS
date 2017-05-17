@@ -57,7 +57,7 @@ boolean CKernel::Initialize (void)
 			pTarget = &m_Screen;
 		}
 
-		bOK = m_Logger.Initialize (pTarget);
+		bOK = m_Logger.Initialize (&m_Screen);
 	}
 
 	if (bOK)
@@ -70,12 +70,10 @@ boolean CKernel::Initialize (void)
 		bOK = m_Timer.Initialize ();
 	}
 
-  if (bOK)
-  {
-    bOK = m_CoreManager.Initialize();
-  }
-
-  uart_init();
+	if (bOK)
+	{
+		bOK = m_CoreManager.Initialize();
+	}
 
 	return bOK;
 }
@@ -86,6 +84,10 @@ void coreTestFunct(CLogger *pLogger, int coreID){
     pLogger->Write("Core", LogNotice, "Core %d is running", coreID);
 }
 
+void foo(CLogger *pLogger, int coreID){
+  //ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
+    pLogger->Write("Wakeup", LogNotice, "foo");
+}
 
 TShutdownMode CKernel::Run (void)
 {
@@ -118,12 +120,33 @@ TShutdownMode CKernel::Run (void)
     uart_puts("Time is here\r");
 	}
   */
-  m_CoreManager.funct[0] = coreTestFunct;
-  m_CoreManager.funct[1] = coreTestFunct;
-  m_CoreManager.funct[2] = coreTestFunct;
-  m_CoreManager.funct[3] = coreTestFunct;
+	m_CoreManager.funct[0] = coreTestFunct;
+	m_CoreManager.funct[1] = coreTestFunct;
+	m_CoreManager.funct[2] = coreTestFunct;
+	m_CoreManager.funct[3] = coreTestFunct;
 
-  m_CoreManager.Run(0);
+	m_CoreManager.Run(0);
+
+
+	unsigned nTime = m_Timer.GetTime ();
+	while (1)
+	{
+		while (nTime == m_Timer.GetTime ())
+		{
+			// just wait a second
+		}
+
+		nTime = m_Timer.GetTime ();
+
+		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
+
+		if(nTime == 5){
+			m_CoreManager.AssignTask(3, foo);
+			m_CoreManager.WakeUp(3);
+
+		}
+	}
+
 
 	return ShutdownHalt;
 }
