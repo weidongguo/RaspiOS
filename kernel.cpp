@@ -84,9 +84,30 @@ void coreTestFunct(CLogger *pLogger, int coreID){
     pLogger->Write("Core", LogNotice, "Core %d is running", coreID);
 }
 
-void foo(CLogger *pLogger, int coreID){
-  //ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
-    pLogger->Write("Wakeup", LogNotice, "foo");
+void bar() {
+	CLogger::Get ()->Write ("Wakeup", LogNotice, "bar");
+}
+
+void foo1(){
+    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo1");
+    
+}
+
+
+void foo2(){
+    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo2");
+   
+}
+
+
+void foo3(){
+    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo3");
+  
+}
+
+void foo4(){
+    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo4");
+  
 }
 
 TShutdownMode CKernel::Run (void)
@@ -138,12 +159,45 @@ TShutdownMode CKernel::Run (void)
 
 		nTime = m_Timer.GetTime ();
 
-		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
+		if(nTime <= 15) {
+			m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
+		}
 
 		if(nTime == 5){
-			m_CoreManager.AssignTask(3, foo);
+			m_Logger.Write (FromKernel, LogNotice, "Triggered 5");
+			m_CoreManager.AssignTask(1, foo1);
+			m_CoreManager.WakeUp(1);
+
+			m_CoreManager.AssignTask(2, foo2);
+			m_CoreManager.WakeUp(2);
+
+			m_CoreManager.AssignTask(3, foo3);
 			m_CoreManager.WakeUp(3);
 
+		}
+
+		if(nTime == 10){
+			m_Logger.Write (FromKernel, LogNotice, "Triggered 10");
+			m_CoreManager.AssignTask(1, foo2);
+			m_CoreManager.WakeUp(1);
+
+			m_CoreManager.AssignTask(2, foo3);
+			m_CoreManager.WakeUp(2);
+
+			m_CoreManager.AssignTask(3, foo1);
+			m_CoreManager.WakeUp(3);
+		}
+
+		if(nTime == 15){
+			m_Logger.Write (FromKernel, LogNotice, "Triggered 15");
+			//m_CoreManager.AssignTask(1, bar);
+			m_CoreManager.WakeUp(1);
+
+			//m_CoreManager.AssignTask(2, bar);
+			m_CoreManager.WakeUp(2);
+
+			//m_CoreManager.AssignTask(3, bar);
+			m_CoreManager.WakeUp(3);
 		}
 	}
 

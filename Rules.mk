@@ -79,7 +79,7 @@ clean:
 	rm -f *.o *.a *.elf *.lst *.img *.cir *.map *~ $(EXTRACLEAN)
 
 run : 
-	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel7.elf
+	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel8-32.elf
 
 runimg :
 	qemu-system-arm -M raspi2 -m 128M -bios kernel7.img

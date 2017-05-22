@@ -71,9 +71,9 @@ void halt (void)
 	DataMemBarrier ();
 #endif
 
-	DisableIRQs ();
+	//DisableIRQs ();
 #ifndef USE_RPI_STUB_AT
-	DisableFIQs ();
+	//DisableFIQs ();
 #endif
 	
 	for (;;)

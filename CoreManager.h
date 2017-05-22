@@ -33,6 +33,7 @@
 #include "thread.h"
 
 typedef void (*core_handler_t)(CLogger*, int);
+typedef void (*handler_no_args_t)();
 
 class CoreManager
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -52,7 +53,7 @@ public:
 	// Override.
 	void IPIHandler (unsigned nCore, unsigned nIPI);	// handles IPI on this core
 
-	void AssignTask(unsigned int coreNum, core_handler_t funct);
+	void AssignTask(unsigned int coreNum, handler_no_args_t funct);
 
 	void WakeUp(unsigned int coreNum);
 

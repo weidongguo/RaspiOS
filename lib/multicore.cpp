@@ -115,8 +115,9 @@ void CMultiCoreSupport::SendIPI (unsigned nCore, unsigned nIPI)
 {
 	assert (nCore < CORES);
 	assert (nIPI < 32);
-
+	
 	write32 (ARM_LOCAL_MAILBOX0_SET0 + 0x10 * nCore, 1 << nIPI);
+	write32 (ARM_LOCAL_IRQ_PENDING0 + 4 * nCore, 0x10);
 }
 
 void CMultiCoreSupport::HaltAll (void)
@@ -144,9 +145,11 @@ boolean CMultiCoreSupport::LocalInterruptHandler (void)
 	{
 		return FALSE;
 	}
-
+	
 	u32 nMailBoxClear = ARM_LOCAL_MAILBOX0_CLR0 + 0x10 * nCore;
 	u32 nIPIMask = read32 (nMailBoxClear);
+
+	//CLogger::Get ()->Write (FromMultiCore, LogDebug, "2nd LocalInterruptHandler() nIPIMask: %x", nIPIMask);
 	if (nIPIMask == 0)
 	{
 		return FALSE;
@@ -160,7 +163,7 @@ boolean CMultiCoreSupport::LocalInterruptHandler (void)
 
 	write32 (nMailBoxClear, 1 << nIPI);
 	DataSyncBarrier ();
-
+	//CLogger::Get ()->Write (FromMultiCore, LogDebug, "3rd LocalInterruptHandler() %d\tnIPIMask: %x", nIPI, nIPIMask);
 	s_pThis->IPIHandler (nCore, nIPI);
 
 	return TRUE;

@@ -48,15 +48,17 @@ void CoreManager::Run (unsigned coreNumber)
 
 	m_pLogger->Write("CoreManager", LogNotice, "core %d is running\n", coreNumber);  
  	
-  	if(funct[coreNumber])
-	  	funct[coreNumber](m_pLogger, coreNumber);
+  	//if(funct[coreNumber])
+	//  	funct[coreNumber](m_pLogger, coreNumber);
 
  
 #else
-  	funct[0](m_pLogger, coreNumber);	
+  	//funct[0](m_pLogger, coreNumber);	
 #endif
   	if(coreNumber != 0)
-  		SendIPI(coreNumber, IPI_HALT_CORE);
+  		halt();
+  	//	SendIPI(coreNumber, IPI_HALT_CORE);
+
 }
 
 // Override.
@@ -64,24 +66,29 @@ void CoreManager::IPIHandler (unsigned nCore, unsigned nIPI)
 {
 	assert (nCore < CORES);
 	assert (nIPI < 32);
-
+	CLogger::Get ()->Write("IPIHandler", LogDebug, "IPI: %d", nIPI);
 	if (nIPI == IPI_HALT_CORE)
 	{
-		CLogger::Get ()->Write ("FromMultiCore", LogDebug, "Bro CPU core %u will halt now", nCore);
+		CLogger::Get ()->Write ("IPIHandler", LogDebug, "Bro CPU core %u will halt now", nCore);
 
-		halt ();
+		//halt ();
 	} else {
-		CLogger::Get ()->Write ("FromMultiCore", LogDebug, "No case found");
+		CLogger::Get ()->Write ("IPIHandler", LogDebug, "No case found");
+		u32 funct = read32 (ARM_LOCAL_MAILBOX3_CLR0 + 0x10 * nCore);
+		CLogger::Get ()->Write ("IPIHandler", LogDebug, "funct is %x", funct);
+		if(funct) {
+			((handler_no_args_t)funct)();
+		}
 	}
 }
 
-void CoreManager::AssignTask(unsigned int nCore, core_handler_t funct) {
-  if(nCore >= 0 && nCore <= 3)
+void CoreManager::AssignTask(unsigned int nCore, handler_no_args_t funct) {
+  if(nCore <= 3)
     write32 (ARM_LOCAL_MAILBOX3_SET0 + 0x10 * nCore, (u32) funct);
 }
 
 void CoreManager::WakeUp(unsigned int coreNum) {
-	SendIPI(coreNum, IPI_HALT_CORE + 1);
+	SendIPI(coreNum, IPI_USER);
 }
 
 // See: http://en.wikipedia.org/wiki/Mandelbrot_set
