@@ -90,7 +90,7 @@ void bar() {
 
 void foo1(){
     CLogger::Get ()->Write ("Wakeup", LogNotice, "foo1");
-    
+   	CTimer::Get()->MsDelay(10000);
 }
 
 
@@ -167,12 +167,13 @@ TShutdownMode CKernel::Run (void)
 			m_Logger.Write (FromKernel, LogNotice, "Triggered 5");
 			m_CoreManager.AssignTask(1, foo1);
 			m_CoreManager.WakeUp(1);
-
+			/*
 			m_CoreManager.AssignTask(2, foo2);
 			m_CoreManager.WakeUp(2);
 
 			m_CoreManager.AssignTask(3, foo3);
 			m_CoreManager.WakeUp(3);
+			*/
 
 		}
 
@@ -180,24 +181,27 @@ TShutdownMode CKernel::Run (void)
 			m_Logger.Write (FromKernel, LogNotice, "Triggered 10");
 			m_CoreManager.AssignTask(1, foo2);
 			m_CoreManager.WakeUp(1);
-
+			/*
 			m_CoreManager.AssignTask(2, foo3);
 			m_CoreManager.WakeUp(2);
 
 			m_CoreManager.AssignTask(3, foo1);
 			m_CoreManager.WakeUp(3);
+			*/
+
 		}
 
 		if(nTime == 15){
 			m_Logger.Write (FromKernel, LogNotice, "Triggered 15");
-			//m_CoreManager.AssignTask(1, bar);
+			m_CoreManager.AssignTask(1, bar);
 			m_CoreManager.WakeUp(1);
-
-			//m_CoreManager.AssignTask(2, bar);
+			/*	
+			m_CoreManager.AssignTask(2, bar);
 			m_CoreManager.WakeUp(2);
 
-			//m_CoreManager.AssignTask(3, bar);
+			m_CoreManager.AssignTask(3, bar);
 			m_CoreManager.WakeUp(3);
+			*/	
 		}
 	}
 

@@ -55,8 +55,8 @@ void CoreManager::Run (unsigned coreNumber)
 #else
   	//funct[0](m_pLogger, coreNumber);	
 #endif
-  	if(coreNumber != 0)
-  		halt();
+  	//if(coreNumber != 0)
+  	//	halt();
   	//	SendIPI(coreNumber, IPI_HALT_CORE);
 
 }
@@ -83,8 +83,11 @@ void CoreManager::IPIHandler (unsigned nCore, unsigned nIPI)
 }
 
 void CoreManager::AssignTask(unsigned int nCore, handler_no_args_t funct) {
-  if(nCore <= 3)
+  CLogger::Get ()->Write ("IPIHandler", LogDebug, "funct is %x", funct);
+  if(nCore <= 3) {
+  	write32 (ARM_LOCAL_MAILBOX3_CLR0 + 0x10 * nCore, (u32) 0xffffffff);
     write32 (ARM_LOCAL_MAILBOX3_SET0 + 0x10 * nCore, (u32) funct);
+  }
 }
 
 void CoreManager::WakeUp(unsigned int coreNum) {

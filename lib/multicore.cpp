@@ -117,7 +117,7 @@ void CMultiCoreSupport::SendIPI (unsigned nCore, unsigned nIPI)
 	assert (nIPI < 32);
 	
 	write32 (ARM_LOCAL_MAILBOX0_SET0 + 0x10 * nCore, 1 << nIPI);
-	write32 (ARM_LOCAL_IRQ_PENDING0 + 4 * nCore, 0x10);
+	//write32 (ARM_LOCAL_IRQ_PENDING0 + 4 * nCore, 0x10);
 }
 
 void CMultiCoreSupport::HaltAll (void)
