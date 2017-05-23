@@ -1,22 +1,7 @@
 //
 // CoreManager.h
 //
-// Circle - A C++ bare metal environment for Raspberry Pi
-// Copyright (C) 2015  R. Stange <rsta2@o2online.de>
-// 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
+
 #ifndef _coremanager_h
 #define _coremanager_h
 
@@ -30,9 +15,6 @@
 #include <circle/memio.h>
 #include <circle/startup.h>
 
-#include "thread.h"
-
-typedef void (*core_handler_t)(CLogger*, int);
 typedef void (*handler_no_args_t)();
 
 class CoreManager
@@ -48,6 +30,7 @@ public:
 	boolean Initialize (void)	{ return TRUE; }
 #endif
 
+	// Override.
 	void Run (unsigned nCore);
 
 	// Override.
@@ -57,19 +40,9 @@ public:
 
 	void WakeUp(unsigned int coreNum);
 
-
-  	core_handler_t funct[CORES]; 
-
-  
-
-private:
-	void Calculate (float x1, float x2, float y1, float y2, unsigned nMaxIteration,
-			unsigned nPosY0, unsigned nHeight);
-
-
 private:
 	CScreenDevice *m_pScreen;
-  CLogger *m_pLogger;
+  	CLogger *m_pLogger;
 };
 
 #endif

@@ -78,76 +78,28 @@ boolean CKernel::Initialize (void)
 	return bOK;
 }
 
-
-void coreTestFunct(CLogger *pLogger, int coreID){
-  //ContextSwitch(&t0->tcb->regs, &main_thread->tcb->regs);
-    pLogger->Write("Core", LogNotice, "Core %d is running", coreID);
-}
-
 void bar() {
-	CLogger::Get ()->Write ("Wakeup", LogNotice, "bar");
+	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is running bar()", CMultiCoreSupport::ThisCore ());
 }
 
 void foo1(){
-    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo1");
+	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is foo1() - sleep for 10 seconds", CMultiCoreSupport::ThisCore ());
    	CTimer::Get()->MsDelay(10000);
 }
 
-
 void foo2(){
-    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo2");
-   
+	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is foo2()", CMultiCoreSupport::ThisCore ());
 }
-
 
 void foo3(){
-    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo3");
-  
-}
-
-void foo4(){
-    CLogger::Get ()->Write ("Wakeup", LogNotice, "foo4");
-  
+	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is foo3()", CMultiCoreSupport::ThisCore ());
 }
 
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
-  /*
-	m_Logger.Write (FromKernel, LogNotice, "An exception will occur after 15 seconds from now");
-
-	// start timer to elapse after 15 seconds
-	m_Timer.StartKernelTimer (15 * HZ, TimerHandler);
-
-  ThreadManager *tm = new ThreadManager(); 
-  
-  tm->thread_switch(tm->getCurrentThread(), tm->thread_create(foo, tm));
-  
-  
-  uart_puts("back here bro!\r\n");
-	// generate a log message every second
-  unsigned nTime = m_Timer.GetTime ();
-	while (1)
-	{
-		while (nTime == m_Timer.GetTime ())
-		{
-			// just wait a second
-		}
-
-		nTime = m_Timer.GetTime ();
-
-		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
-
-    uart_puts("Time is here\r");
-	}
-  */
-	m_CoreManager.funct[0] = coreTestFunct;
-	m_CoreManager.funct[1] = coreTestFunct;
-	m_CoreManager.funct[2] = coreTestFunct;
-	m_CoreManager.funct[3] = coreTestFunct;
-
+ 
 	m_CoreManager.Run(0);
-
 
 	unsigned nTime = m_Timer.GetTime ();
 	while (1)
@@ -164,44 +116,31 @@ TShutdownMode CKernel::Run (void)
 		}
 
 		if(nTime == 5){
-			m_Logger.Write (FromKernel, LogNotice, "Triggered 5");
 			m_CoreManager.AssignTask(1, foo1);
 			m_CoreManager.WakeUp(1);
-			/*
+			
 			m_CoreManager.AssignTask(2, foo2);
 			m_CoreManager.WakeUp(2);
 
 			m_CoreManager.AssignTask(3, foo3);
 			m_CoreManager.WakeUp(3);
-			*/
-
 		}
 
 		if(nTime == 10){
-			m_Logger.Write (FromKernel, LogNotice, "Triggered 10");
-			m_CoreManager.AssignTask(1, foo2);
+			m_CoreManager.AssignTask(1, bar);
 			m_CoreManager.WakeUp(1);
-			/*
+			
 			m_CoreManager.AssignTask(2, foo3);
 			m_CoreManager.WakeUp(2);
 
-			m_CoreManager.AssignTask(3, foo1);
+			m_CoreManager.AssignTask(3, foo2);
 			m_CoreManager.WakeUp(3);
-			*/
-
+			
 		}
 
 		if(nTime == 15){
-			m_Logger.Write (FromKernel, LogNotice, "Triggered 15");
 			m_CoreManager.AssignTask(1, bar);
 			m_CoreManager.WakeUp(1);
-			/*	
-			m_CoreManager.AssignTask(2, bar);
-			m_CoreManager.WakeUp(2);
-
-			m_CoreManager.AssignTask(3, bar);
-			m_CoreManager.WakeUp(3);
-			*/	
 		}
 	}
 
