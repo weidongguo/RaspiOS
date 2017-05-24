@@ -18,15 +18,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
-#include "contextswitch.h"
-#include "thread.h"
 #include <hal/uart.h>
 
 static const char FromKernel[] = "kernel";
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
-	m_Logger (m_Options.GetLogLevel (), &m_Timer),
-  m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
+	m_Logger (m_Options.GetLogLevel (), &m_Timer)//,
+  //m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 {
 	m_ActLED.Blink (5);	// show we are alive
 }
@@ -72,12 +70,12 @@ boolean CKernel::Initialize (void)
 
 	if (bOK)
 	{
-		bOK = m_CoreManager.Initialize();
+		//bOK = m_CoreManager.Initialize();
 	}
 
 	return bOK;
 }
-
+/*
 void bar() {
 	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is running bar()", CMultiCoreSupport::ThisCore ());
 }
@@ -94,13 +92,37 @@ void foo2(){
 void foo3(){
 	CLogger::Get ()->Write ("Wakeup", LogNotice, "core %d is foo3()", CMultiCoreSupport::ThisCore ());
 }
+*/
+
+void tfoo(unsigned int count, const void *params){
+  CLogger::Get ()->Write ("Thread", LogNotice, "thread %d", ((int*)params)[0]);
+}
+
+void tfooinf(unsigned int count, const void *params){
+  	while(1) {
+	  CLogger::Get ()->Write ("Thread", LogNotice, "thread %d", ((int*)params)[0]);
+	  CScheduler::Get()->Yield();
+	}
+}
 
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
  
+  int params[] = {0, 1, 2, 3, 4}; 
+  Thread *t0 = new Thread(tfoo, 1, &params[0]);
+  m_Scheduler.Yield();
+  Thread *t1 = new Thread(tfoo, 1, &params[1]);
+  m_Scheduler.Yield();
+  Thread *t2 = new Thread(tfoo, 1, &params[2]);
+  m_Scheduler.Yield();
+  /*
+  while(1) {
+  	m_Scheduler.Yield();
+  }
+  */
+  /*
 	m_CoreManager.Run(0);
-
 	unsigned nTime = m_Timer.GetTime ();
 	while (1)
 	{
@@ -143,8 +165,7 @@ TShutdownMode CKernel::Run (void)
 			m_CoreManager.WakeUp(1);
 		}
 	}
-
-
+  */
 	return ShutdownHalt;
 }
 

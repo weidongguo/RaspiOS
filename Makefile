@@ -4,9 +4,10 @@
 
 CIRCLEHOME = .
 
-OBJS	= main.o kernel.o contextswitch.o thread.o CoreManager.o
+OBJS	= main.o kernel.o Thread.o
 
-LIBS	= $(CIRCLEHOME)/lib/libcircle.a
+LIBS	= $(CIRCLEHOME)/lib/libcircle.a \
+  $(CIRCLEHOME)/lib/sched/libsched.a
 
 all:
 	cd $(CIRCLEHOME)/lib && $(MAKE)

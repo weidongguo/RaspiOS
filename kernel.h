@@ -32,7 +32,10 @@
 #include <circle/logger.h>
 #include <circle/types.h>
 
-#include "CoreManager.h"
+#include <circle/sched/scheduler.h>
+
+//#include "CoreManager.h"
+#include "Thread.h"
 
 enum TShutdownMode
 {
@@ -65,8 +68,11 @@ private:
 	CInterruptSystem	m_Interrupt;
 	CTimer			m_Timer;
 	CLogger			m_Logger;
+  
+  CScheduler m_Scheduler;
 
-	CoreManager m_CoreManager;
+	//CoreManager m_CoreManager;
+ 
 };
 
 #endif

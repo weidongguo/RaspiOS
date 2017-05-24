@@ -92,7 +92,7 @@ start.elf :
 config.txt :
 	echo '' > config.txt
 
-install : $(TARGET).img bootcode.bin start.elf config.txt 
+install : $(TARGET).img #bootcode.bin start.elf config.txt 
 	cp $(TARGET).img $(FLASH_DEST)
 #	echo 'unimplemented! copy files to sd card on real RP2'
   

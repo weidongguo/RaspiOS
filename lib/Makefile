@@ -24,7 +24,7 @@ all: startup.o libcircle.a
 
 startup.o: startup.S
 
-libcircle.a: $(OBJS)
+libcircle.a: $(OBJS) 
 	rm -f libcircle.a
 	$(AR) cr libcircle.a $(OBJS)
 
