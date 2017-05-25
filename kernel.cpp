@@ -101,7 +101,7 @@ void tfoo(unsigned int count, const void *params){
 void tfooinf(unsigned int count, const void *params){
   	while(1) {
 	  CLogger::Get ()->Write ("Thread", LogNotice, "thread %d", ((int*)params)[0]);
-	  CScheduler::Get()->Yield();
+	  CScheduler::Get()->Sleep(5);
 	}
 }
 
@@ -111,16 +111,15 @@ TShutdownMode CKernel::Run (void)
  
   int params[] = {0, 1, 2, 3, 4}; 
   Thread *t0 = new Thread(tfoo, 1, &params[0]);
-  m_Scheduler.Yield();
+  
   Thread *t1 = new Thread(tfoo, 1, &params[1]);
-  m_Scheduler.Yield();
+ 
   Thread *t2 = new Thread(tfoo, 1, &params[2]);
-  m_Scheduler.Yield();
-  /*
+
   while(1) {
   	m_Scheduler.Yield();
   }
-  */
+
   /*
 	m_CoreManager.Run(0);
 	unsigned nTime = m_Timer.GetTime ();
