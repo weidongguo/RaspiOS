@@ -23,7 +23,8 @@
 static const char FromKernel[] = "kernel";
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
-	m_Logger (m_Options.GetLogLevel (), &m_Timer)//,
+	m_Logger (m_Options.GetLogLevel (), &m_Timer),
+	m_DWHCI (&m_Interrupt, &m_Timer)
   //m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 {
 	m_ActLED.Blink (5);	// show we are alive
@@ -70,6 +71,16 @@ boolean CKernel::Initialize (void)
 
 	if (bOK)
 	{
+		bOK = m_DWHCI.Initialize ();
+	}
+
+	if (bOK)
+	{
+		bOK = m_Net.Initialize ();
+	}
+
+	if (bOK)
+	{
 		//bOK = m_CoreManager.Initialize();
 	}
 
@@ -109,62 +120,18 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
  
-  int params[] = {0, 1, 2, 3, 4}; 
-  Thread *t0 = new Thread(tfoo, 1, &params[0]);
-  
-  Thread *t1 = new Thread(tfoo, 1, &params[1]);
- 
-  Thread *t2 = new Thread(tfoo, 1, &params[2]);
+	CString IPString;
+	m_Net.GetConfig ()->GetIPAddress ()->Format (&IPString);
+	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
+			(const char *) IPString);
 
-  while(1) {
-  	m_Scheduler.Yield();
-  }
+	HTTPClient *httpclient = new HTTPClient(&m_Net);
 
-  /*
-	m_CoreManager.Run(0);
-	unsigned nTime = m_Timer.GetTime ();
-	while (1)
-	{
-		while (nTime == m_Timer.GetTime ())
-		{
-			// just wait a second
-		}
-
-		nTime = m_Timer.GetTime ();
-
-		if(nTime <= 15) {
-			m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
-		}
-
-		if(nTime == 5){
-			m_CoreManager.AssignTask(1, foo1);
-			m_CoreManager.WakeUp(1);
-			
-			m_CoreManager.AssignTask(2, foo2);
-			m_CoreManager.WakeUp(2);
-
-			m_CoreManager.AssignTask(3, foo3);
-			m_CoreManager.WakeUp(3);
-		}
-
-		if(nTime == 10){
-			m_CoreManager.AssignTask(1, bar);
-			m_CoreManager.WakeUp(1);
-			
-			m_CoreManager.AssignTask(2, foo3);
-			m_CoreManager.WakeUp(2);
-
-			m_CoreManager.AssignTask(3, foo2);
-			m_CoreManager.WakeUp(3);
-			
-		}
-
-		if(nTime == 15){
-			m_CoreManager.AssignTask(1, bar);
-			m_CoreManager.WakeUp(1);
-		}
+	while(1) {
+		m_Scheduler.Yield();
 	}
-  */
+
+ 
 	return ShutdownHalt;
 }
 

@@ -32,10 +32,13 @@
 #include <circle/logger.h>
 #include <circle/types.h>
 
+#include <circle/usb/dwhcidevice.h>
+#include <circle/net/netsubsystem.h>
 #include <circle/sched/scheduler.h>
 
 //#include "CoreManager.h"
 #include "Thread.h"
+#include "HTTPClient.h"
 
 enum TShutdownMode
 {
@@ -68,9 +71,10 @@ private:
 	CInterruptSystem	m_Interrupt;
 	CTimer			m_Timer;
 	CLogger			m_Logger;
-  
-  CScheduler m_Scheduler;
 
+  	CDWHCIDevice		m_DWHCI;
+	CScheduler		m_Scheduler;
+	CNetSubSystem		m_Net;
 	//CoreManager m_CoreManager;
  
 };
