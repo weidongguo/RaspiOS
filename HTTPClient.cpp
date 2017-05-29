@@ -40,13 +40,12 @@
 
 static const char FromHTTPDaemon[] = "http";
 
-const u8 	TARGET_SERVER_IP[] = 	{151,101,40,133};
+const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
 const u16   TARGET_SERVER_PORT =	80;
 
-#define BUFFER_SIZE 	1024
-u8 Buffer[BUFFER_SIZE];
+u8 Buffer[FRAME_BUFFER_SIZE];
 
-#define HOST_IP 		"151.101.40.133"
+#define HOST_IP  		"169.237.118.12"
 
 //unsigned HTTPClient::s_nInstanceCount = 0;
 
@@ -117,7 +116,7 @@ void HTTPClient::Request(void){
 	
 	// send HTTP response header
 	CString Header;
-	Header.Format ("GET / HTTP/1.1\r\n"
+	Header.Format ("GET /sample1.mp3 HTTP/1.1\r\n"
 		       "Host: " HOST_IP "\r\n"
 		       "Connection: keep-alive\r\n"
 		       "\r\n");
@@ -132,11 +131,17 @@ void HTTPClient::Request(void){
 		return;
 	}	
 
-	ret = m_pSocket->Receive(Buffer, BUFFER_SIZE, 0);
+	for(int i = 0; (ret = m_pSocket->Receive(Buffer, sizeof(Buffer), 0)) > 0; i++) {
 
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
 
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Received Buffer: %s", Buffer);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received: %s\n", i, Buffer);
+
+	}
+
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
+
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
 
 }
 /*
