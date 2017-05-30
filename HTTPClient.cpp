@@ -29,6 +29,8 @@
 #include <circle/util.h>
 #include <assert.h>
 
+#include <circle/pwmsounddevice.h>
+
 #include "HTTPClient.h"
 
 #define HTTPD_VERSION		"0.01"
@@ -43,19 +45,20 @@ static const char FromHTTPDaemon[] = "http";
 const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
 const u16   TARGET_SERVER_PORT =	80;
 
-u8 Buffer[FRAME_BUFFER_SIZE];
+u8 Buffer[30 * 1024 * 1024];
 
 #define HOST_IP  		"169.237.118.12"
 
 //unsigned HTTPClient::s_nInstanceCount = 0;
 
-HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
+HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
 :	CTask (HTTPD_STACK_SIZE),
 	m_pNetSubSystem (pNetSubSystem),
 	m_pSocket (pSocket),
 	m_nMaxContentSize (nMaxContentSize),
 	m_nPort (nPort),
-	m_pContentBuffer (0)
+	m_pContentBuffer (0),
+	m_pPWMSoundDevice(pPWMSoundDevice)
 {
 	//s_nInstanceCount++;
 
@@ -116,7 +119,7 @@ void HTTPClient::Request(void){
 	
 	// send HTTP response header
 	CString Header;
-	Header.Format ("GET /sample1.mp3 HTTP/1.1\r\n"
+	Header.Format ("GET /loving_can_hurt.raw HTTP/1.1\r\n"
 		       "Host: " HOST_IP "\r\n"
 		       "Connection: keep-alive\r\n"
 		       "\r\n");
@@ -131,18 +134,41 @@ void HTTPClient::Request(void){
 		return;
 	}	
 
-	for(int i = 0; (ret = m_pSocket->Receive(Buffer, sizeof(Buffer), 0)) > 0; i++) {
+	u8 *ptr = Buffer, *basePtr = Buffer;
+	u32 totalLen = 0;
 
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+	for(int i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
 
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received: %s\n", i, Buffer);
+		//CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+		//CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
 
+		ptr += ret;
+		totalLen += ret;
+		/*
+		if(totalLen >= 100 * 1024) {
+			m_pPWMSoundDevice->Playback(Buffer, totalLen / 1, 1, 8);
+			for (unsigned nCount = 0; m_pPWMSoundDevice->PlaybackActive (); nCount++)
+			{
+			//m_Screen.Rotor (0, nCount);
+			}
+			totalLen = 0;
+			ptr = Buffer;
+		}
+		*/
 	}
 
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
-
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
+    CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
 
+    m_pPWMSoundDevice->Playback(Buffer, totalLen / 1, 1, 8);
+	for (unsigned nCount = 0; m_pPWMSoundDevice->PlaybackActive (); nCount++)
+	{
+	//m_Screen.Rotor (0, nCount);
+	}
+	
+    
+	
 }
 /*
 void HTTPClient::Listener (void)

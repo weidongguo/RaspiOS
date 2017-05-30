@@ -58,6 +58,7 @@ class HTTPClient : public CTask
 {
 public:
 	HTTPClient (CNetSubSystem *pNetSubSystem,
+			 CPWMSoundDevice *pPWMSoundDevice,
 		     CSocket	   *pSocket	    = 0,	// is 0 for 1st created instance (listener)
 		     unsigned	    nMaxContentSize = 0,	// buffer size for worker
 		     u16	    nPort	    = HTTP_PORT);
@@ -93,6 +94,8 @@ private:
 	CSocket	      *m_pSocket;
 	unsigned       m_nMaxContentSize;
 	u16	       m_nPort;
+
+	CPWMSoundDevice *m_pPWMSoundDevice;
 	
 	u8 *m_pContentBuffer;
 

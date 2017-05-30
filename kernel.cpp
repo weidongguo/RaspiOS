@@ -24,7 +24,8 @@ static const char FromKernel[] = "kernel";
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
 	m_Logger (m_Options.GetLogLevel (), &m_Timer),
-	m_DWHCI (&m_Interrupt, &m_Timer)
+	m_DWHCI (&m_Interrupt, &m_Timer),
+	m_PWMSoundDevice (&m_Interrupt)
   //m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 {
 	m_ActLED.Blink (5);	// show we are alive
@@ -125,7 +126,7 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
 
-	HTTPClient *httpclient = new HTTPClient(&m_Net);
+	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice);
 
 	while(1) {
 		m_Scheduler.Yield();

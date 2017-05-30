@@ -35,6 +35,7 @@
 #include <circle/usb/dwhcidevice.h>
 #include <circle/net/netsubsystem.h>
 #include <circle/sched/scheduler.h>
+#include <circle/pwmsounddevice.h>
 
 //#include "CoreManager.h"
 #include "Thread.h"
@@ -75,6 +76,7 @@ private:
   	CDWHCIDevice		m_DWHCI;
 	CScheduler		m_Scheduler;
 	CNetSubSystem		m_Net;
+	CPWMSoundDevice		m_PWMSoundDevice;
 	//CoreManager m_CoreManager;
  
 };
