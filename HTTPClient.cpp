@@ -29,9 +29,8 @@
 #include <circle/util.h>
 #include <assert.h>
 
-#include <circle/pwmsounddevice.h>
-
 #include "HTTPClient.h"
+#include "Keyboard.h"
 
 #define HTTPD_VERSION		"0.01"
 #define SERVER			"HTTPClient/" HTTPD_VERSION " (Circle)"
@@ -78,13 +77,15 @@ HTTPClient::~HTTPClient (void)
 	m_pContentBuffer = 0;
 
 	m_pNetSubSystem = 0;
-
+	assert(false);
 	//s_nInstanceCount--;
 }
 
 void HTTPClient::Run (void)
 {
-	Request();
+	Keyboard *keyboard = Keyboard::Get();
+	if(keyboard->IsEndOfLine())
+		Request(keyboard->GetBuffer());
 	/*	
 	if (m_pSocket == 0)
 	{
@@ -98,11 +99,13 @@ void HTTPClient::Run (void)
 	*/
 }
 
-void HTTPClient::Request(void){
+void HTTPClient::Request(const char* songName){
+ 	CLogger::Get()->Write("HTTPClient", LogDebug, "Song name: %s", songName);
+
 	assert (m_pNetSubSystem != 0);
 	m_pSocket = new CSocket (m_pNetSubSystem, IPPROTO_TCP);
 	assert (m_pSocket != 0);
-
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Binding...");
 	if (m_pSocket->Bind (m_nPort) < 0)
 	{
 		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot bind socket (port %u)", m_nPort);
@@ -113,6 +116,7 @@ void HTTPClient::Request(void){
 		return;
 	}
 	CIPAddress targetIP = CIPAddress(TARGET_SERVER_IP);
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
 	int ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);	
 	
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
@@ -123,7 +127,9 @@ void HTTPClient::Request(void){
 	Header.Format ("GET /%s.raw HTTP/1.1\r\n"
 		       "Host: " HOST_IP "\r\n"
 		       "Connection: keep-alive\r\n"
-		       "\r\n", "loving_can_hurt");
+		       "\r\n", songName);
+
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Header: %s", (const char*)(Header));
 
 	if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
 	{
@@ -139,8 +145,8 @@ void HTTPClient::Request(void){
 	u32 totalLen = 0;
 
 	for(int i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
-		//CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
-		//CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
 		ptr += ret;
 		totalLen += ret;
 	}

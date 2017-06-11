@@ -31,15 +31,18 @@
 #include <circle/timer.h>
 #include <circle/logger.h>
 #include <circle/types.h>
+#include <circle/util.h>
 
 #include <circle/usb/dwhcidevice.h>
 #include <circle/net/netsubsystem.h>
 #include <circle/sched/scheduler.h>
 #include <circle/pwmsounddevice.h>
+//#include <circle/usb/usbkeyboard.h>
 
 #include "CoreManager.h"
 #include "Thread.h"
 #include "HTTPClient.h"
+#include "Keyboard.h"
 
 enum TShutdownMode
 {
@@ -59,6 +62,7 @@ public:
 	TShutdownMode Run (void);
 	
 	static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
+	static void KeyPressedHandler (const char *pString);
 
 private:
 	// do not change this order
@@ -81,7 +85,8 @@ private:
 #ifdef ARM_ALLOW_MULTI_CORE	
 	CoreManager m_CoreManager;
 #endif	
- 
+
+	static CKernel *s_pThis;
 };
 
 #endif

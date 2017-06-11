@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _circle_net_httpclient_h
-#define _circle_net_httpdaemon_h
+#ifndef HTTPCLIENT_H
+#define HTTPCLIENT_H
 
 #include <circle/sched/task.h>
 #include <circle/net/netsubsystem.h>
@@ -26,6 +26,7 @@
 #include <circle/types.h>
 
 #include <circle/screen.h>
+#include <circle/pwmsounddevice.h>
 
 #define HTTP_PORT		80
 
@@ -58,6 +59,8 @@ enum THTTPStatus
 
 class HTTPClient : public CTask
 {
+friend class Keyboard;
+
 public:
 	HTTPClient (CNetSubSystem *pNetSubSystem,
 			 CPWMSoundDevice *pPWMSoundDevice,
@@ -86,7 +89,7 @@ private:
 	void Listener (void);			// accepts incoming connections and creates worker task
 	void Worker (void);			// processes a connection
 
-	void Request(void);
+	void Request(const char *songName);
 
 	THTTPStatus ParseRequest (void);
 	THTTPStatus ParseMethod (char *pLine);

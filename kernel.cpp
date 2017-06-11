@@ -19,8 +19,13 @@
 //
 #include "kernel.h"
 #include <hal/uart.h>
+#include <assert.h>
 
 static const char FromKernel[] = "kernel";
+CKernel* CKernel::s_pThis = 0;
+
+bool EnterIsPressed = false;
+
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
 	m_Logger (m_Options.GetLogLevel (), &m_Timer),
@@ -31,11 +36,13 @@ CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight (
     m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 #endif 
 {
+	s_pThis = this;
 	m_ActLED.Blink (5);	// show we are alive
 }
 
 CKernel::~CKernel (void)
 {
+	s_pThis = 0;
 }
 
 boolean CKernel::Initialize (void)
@@ -125,7 +132,18 @@ void tfooinf(unsigned int count, const void *params){
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
- 
+
+	// Set up Keyboard.
+	CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
+	if (pKeyboard == 0)
+	{
+		m_Logger.Write (FromKernel, LogError, "Keyboard not found");
+		return ShutdownHalt;
+	}	
+	pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
+	Keyboard keyboard(pKeyboard);	
+	
+	// Set up HTTP Client.	
 	CString IPString;
 	m_Net.GetConfig ()->GetIPAddress ()->Format (&IPString);
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
@@ -134,11 +152,28 @@ TShutdownMode CKernel::Run (void)
 	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
 
 	while(1) {
-		m_Scheduler.Yield();
+		if(keyboard.IsEndOfLine())
+			m_Scheduler.Yield();
 	}
-
  
 	return ShutdownHalt;
+}
+
+void CKernel::KeyPressedHandler (const char *pString)
+{
+	assert (s_pThis != 0);
+	unsigned int stringLen = strlen(pString);
+	s_pThis->m_Screen.Write (pString, stringLen);
+
+	Keyboard* keyboard = Keyboard::Get();
+	assert(keyboard != 0);
+
+	if(keyboard->IsEndOfLine())
+		keyboard->ClearBuffer();
+
+	for(int i = 0 ; i < stringLen; i++) {
+		keyboard->AppendToBuffer(pString[i]);
+	}
 }
 
 void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
