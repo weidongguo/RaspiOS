@@ -25,6 +25,8 @@
 #include <circle/net/socket.h>
 #include <circle/types.h>
 
+#include <circle/screen.h>
+
 #define HTTP_PORT		80
 
 #define HTTP_MAX_REQUEST_LINE	2048
@@ -59,6 +61,7 @@ class HTTPClient : public CTask
 public:
 	HTTPClient (CNetSubSystem *pNetSubSystem,
 			 CPWMSoundDevice *pPWMSoundDevice,
+			 CScreenDevice *pScreen,
 		     CSocket	   *pSocket	    = 0,	// is 0 for 1st created instance (listener)
 		     unsigned	    nMaxContentSize = 0,	// buffer size for worker
 		     u16	    nPort	    = HTTP_PORT);
@@ -92,6 +95,7 @@ private:
 private:
 	CNetSubSystem *m_pNetSubSystem;
 	CSocket	      *m_pSocket;
+	CScreenDevice *m_pScreen;
 	unsigned       m_nMaxContentSize;
 	u16	       m_nPort;
 

@@ -51,9 +51,10 @@ u8 Buffer[30 * 1024 * 1024];
 
 //unsigned HTTPClient::s_nInstanceCount = 0;
 
-HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
+HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
 :	CTask (HTTPD_STACK_SIZE),
 	m_pNetSubSystem (pNetSubSystem),
+	m_pScreen(pScreen),
 	m_pSocket (pSocket),
 	m_nMaxContentSize (nMaxContentSize),
 	m_nPort (nPort),
@@ -119,10 +120,10 @@ void HTTPClient::Request(void){
 	
 	// send HTTP response header
 	CString Header;
-	Header.Format ("GET /loving_can_hurt.raw HTTP/1.1\r\n"
+	Header.Format ("GET /%s.raw HTTP/1.1\r\n"
 		       "Host: " HOST_IP "\r\n"
 		       "Connection: keep-alive\r\n"
-		       "\r\n");
+		       "\r\n", "loving_can_hurt");
 
 	if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
 	{
@@ -134,27 +135,14 @@ void HTTPClient::Request(void){
 		return;
 	}	
 
-	u8 *ptr = Buffer, *basePtr = Buffer;
+	u8 *ptr = Buffer;
 	u32 totalLen = 0;
 
 	for(int i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
-
 		//CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
 		//CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
-
 		ptr += ret;
 		totalLen += ret;
-		/*
-		if(totalLen >= 100 * 1024) {
-			m_pPWMSoundDevice->Playback(Buffer, totalLen / 1, 1, 8);
-			for (unsigned nCount = 0; m_pPWMSoundDevice->PlaybackActive (); nCount++)
-			{
-			//m_Screen.Rotor (0, nCount);
-			}
-			totalLen = 0;
-			ptr = Buffer;
-		}
-		*/
 	}
 
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
@@ -164,7 +152,7 @@ void HTTPClient::Request(void){
     m_pPWMSoundDevice->Playback(Buffer, totalLen / 1, 1, 8);
 	for (unsigned nCount = 0; m_pPWMSoundDevice->PlaybackActive (); nCount++)
 	{
-	//m_Screen.Rotor (0, nCount);
+		
 	}
 	
     

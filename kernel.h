@@ -37,7 +37,7 @@
 #include <circle/sched/scheduler.h>
 #include <circle/pwmsounddevice.h>
 
-//#include "CoreManager.h"
+#include "CoreManager.h"
 #include "Thread.h"
 #include "HTTPClient.h"
 
@@ -77,7 +77,10 @@ private:
 	CScheduler		m_Scheduler;
 	CNetSubSystem		m_Net;
 	CPWMSoundDevice		m_PWMSoundDevice;
-	//CoreManager m_CoreManager;
+
+#ifdef ARM_ALLOW_MULTI_CORE	
+	CoreManager m_CoreManager;
+#endif	
  
 };
 

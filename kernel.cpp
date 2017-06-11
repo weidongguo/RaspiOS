@@ -26,7 +26,10 @@ CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight (
 	m_Logger (m_Options.GetLogLevel (), &m_Timer),
 	m_DWHCI (&m_Interrupt, &m_Timer),
 	m_PWMSoundDevice (&m_Interrupt)
-  //m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
+#ifdef ARM_ALLOW_MULTI_CORE	
+    ,
+    m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
+#endif 
 {
 	m_ActLED.Blink (5);	// show we are alive
 }
@@ -80,10 +83,12 @@ boolean CKernel::Initialize (void)
 		bOK = m_Net.Initialize ();
 	}
 
+#ifdef ARM_ALLOW_MULTI_CORE
 	if (bOK)
 	{
-		//bOK = m_CoreManager.Initialize();
+		bOK = m_CoreManager.Initialize();
 	}
+#endif
 
 	return bOK;
 }
@@ -126,7 +131,7 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
 
-	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice);
+	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
 
 	while(1) {
 		m_Scheduler.Yield();

@@ -5,6 +5,8 @@
 #ifndef _coremanager_h
 #define _coremanager_h
 
+#ifdef ARM_ALLOW_MULTI_CORE
+
 #include <circle/multicore.h>
 #include <circle/screen.h>
 #include <circle/memory.h>
@@ -17,10 +19,7 @@
 
 typedef void (*handler_no_args_t)();
 
-class CoreManager
-#ifdef ARM_ALLOW_MULTI_CORE
-	: public CMultiCoreSupport
-#endif
+class CoreManager:public CMultiCoreSupport
 {
 public:
 	CoreManager (CLogger *pLogger, CScreenDevice *pScreen, CMemorySystem *pMemorySystem);
@@ -44,5 +43,7 @@ private:
 	CScreenDevice *m_pScreen;
   	CLogger *m_pLogger;
 };
+
+#endif
 
 #endif

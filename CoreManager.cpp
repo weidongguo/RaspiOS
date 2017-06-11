@@ -5,13 +5,13 @@
 
 #include "CoreManager.h"
 
+#ifdef ARM_ALLOW_MULTI_CORE
+
 #define MAX_ITERATION	5000
 
 CoreManager::CoreManager (CLogger *pLogger, CScreenDevice *pScreen, CMemorySystem *pMemorySystem)
 :	
-#ifdef ARM_ALLOW_MULTI_CORE
 	CMultiCoreSupport (pMemorySystem),
-#endif
 	m_pScreen (pScreen),
   	m_pLogger (pLogger)
 {
@@ -61,3 +61,5 @@ void CoreManager::AssignTask(unsigned int nCore, handler_no_args_t funct) {
 void CoreManager::WakeUp(unsigned int coreNum) {
 	SendIPI(coreNum, IPI_USER);
 }
+
+#endif

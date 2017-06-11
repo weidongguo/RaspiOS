@@ -4,7 +4,7 @@
 
 CIRCLEHOME = .
 
-OBJS	= main.o kernel.o Thread.o HTTPClient.o
+OBJS	= main.o kernel.o Thread.o HTTPClient.o CoreManager.o
 
 LIBS = $(CIRCLEHOME)/lib/usb/libusb.a \
   $(CIRCLEHOME)/lib/input/libinput.a \
