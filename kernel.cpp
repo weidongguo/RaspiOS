@@ -149,11 +149,14 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
 
-	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
+	//HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
 
 	while(1) {
-		if(keyboard.IsEndOfLine())
-			m_Scheduler.Yield();
+		if(keyboard.IsEndOfLine()) {
+			new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
+		}
+
+		m_Scheduler.Yield();
 	}
  
 	return ShutdownHalt;

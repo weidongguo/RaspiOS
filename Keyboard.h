@@ -19,6 +19,7 @@ public:
 	~Keyboard();
 	int AppendToBuffer(const char c);
 	void ClearBuffer();
+	void ClearEndOfLine();
 	bool IsEndOfLine();
 	char* GetBuffer();
 

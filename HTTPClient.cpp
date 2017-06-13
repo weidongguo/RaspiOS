@@ -72,20 +72,23 @@ HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSound
 HTTPClient::~HTTPClient (void)
 {
 	//assert (m_pSocket == 0);
-
 	delete m_pContentBuffer;
 	m_pContentBuffer = 0;
 
 	m_pNetSubSystem = 0;
-	assert(false);
+
+	//assert(false);
 	//s_nInstanceCount--;
 }
 
 void HTTPClient::Run (void)
 {
 	Keyboard *keyboard = Keyboard::Get();
-	if(keyboard->IsEndOfLine())
+	if(keyboard->IsEndOfLine()){
+		keyboard->ClearEndOfLine();
 		Request(keyboard->GetBuffer());
+		keyboard->ClearBuffer();
+	}
 	/*	
 	if (m_pSocket == 0)
 	{
@@ -162,7 +165,7 @@ void HTTPClient::Request(const char* songName){
 	}
 	
     
-	
+	delete m_pSocket;// disconnect
 }
 /*
 void HTTPClient::Listener (void)

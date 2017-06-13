@@ -15,9 +15,12 @@ LIBS = $(CIRCLEHOME)/lib/usb/libusb.a \
 
 all:
 	cd $(CIRCLEHOME)/lib && $(MAKE)
+	cd $(CIRCLEHOME)/lib/sched && $(MAKE)
 	$(MAKE) $(TARGET).img 
 
 cleanall: clean
 	cd $(CIRCLEHOME)/lib && rm -f *.o *.a *.elf *.lst *.img *.cir *.map *~
+	cd $(CIRCLEHOME)/lib/sched && rm -f *.o *.a *.elf *.lst *.img *.cir *.map *~
+
 
 include $(CIRCLEHOME)/Rules.mk

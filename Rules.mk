@@ -56,7 +56,7 @@ CFLAGS	+= $(ARCH) -Wall -fsigned-char -fno-builtin -nostdinc -nostdlib -D__circl
 
 CPPFLAGS+= $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
 
-FLASH_DEST = /media/weidongguo/boot
+FLASH_DEST = /media/weidongguo/BOOT
 
 %.o: %.S
 	$(AS) $(AFLAGS) -c -o $@ $<

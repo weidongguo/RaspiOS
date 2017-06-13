@@ -31,9 +31,12 @@ int Keyboard::AppendToBuffer(const char c){
 	return 0;
 }
 
+void Keyboard::ClearEndOfLine(){
+	eol = false;
+}
+
 void Keyboard::ClearBuffer(){
 	BufferIndex = 0;
-	eol = false;
 }
 
 bool Keyboard::IsEndOfLine(){
