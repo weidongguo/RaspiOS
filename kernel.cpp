@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2014  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -31,10 +31,10 @@ CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight (
 	m_Logger (m_Options.GetLogLevel (), &m_Timer),
 	m_DWHCI (&m_Interrupt, &m_Timer),
 	m_PWMSoundDevice (&m_Interrupt)
-#ifdef ARM_ALLOW_MULTI_CORE	
+#ifdef ARM_ALLOW_MULTI_CORE
     ,
     m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
-#endif 
+#endif
 {
 	s_pThis = this;
 	m_ActLED.Blink (5);	// show we are alive
@@ -139,11 +139,11 @@ TShutdownMode CKernel::Run (void)
 	{
 		m_Logger.Write (FromKernel, LogError, "Keyboard not found");
 		return ShutdownHalt;
-	}	
+	}
 	pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
-	Keyboard keyboard(pKeyboard);	
-	
-	// Set up HTTP Client.	
+	Keyboard keyboard(pKeyboard);
+
+	// Set up HTTP Client.
 	CString IPString;
 	m_Net.GetConfig ()->GetIPAddress ()->Format (&IPString);
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
@@ -153,9 +153,9 @@ TShutdownMode CKernel::Run (void)
 
 	while(1) {
 		if(keyboard.IsEndOfLine())
-			m_Scheduler.Yield();
+		 	m_Scheduler.Yield();
 	}
- 
+
 	return ShutdownHalt;
 }
 

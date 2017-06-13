@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015-2016  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -73,7 +73,7 @@ public:
 	void Run (void);
 
 	// creates an instance of your derived webserver class
-	/*	
+	/*
 	virtual HTTPClient *CreateWorker (CNetSubSystem *pNetSubSystem, CSocket *pSocket) = 0;
 
 	// define this to provide your content
@@ -90,7 +90,8 @@ private:
 	void Worker (void);			// processes a connection
 
 	void Request(const char *songName);
-
+  char* GetLinkForPhase2(void);
+	char* GetDownloadLink(void);
 	THTTPStatus ParseRequest (void);
 	THTTPStatus ParseMethod (char *pLine);
 	THTTPStatus ParseHeaderField (char *pLine);
@@ -103,7 +104,7 @@ private:
 	u16	       m_nPort;
 
 	CPWMSoundDevice *m_pPWMSoundDevice;
-	
+
 	u8 *m_pContentBuffer;
 
 	// from request
