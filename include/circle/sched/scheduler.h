@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -36,6 +36,9 @@ public:
 	void usSleep (unsigned nMicroSeconds);
 
 	static CScheduler *Get (void);
+	void startFromSecondary (void);
+
+	static int GetCore (void);
 
 private:
 	void AddTask (CTask *pTask);
@@ -48,14 +51,14 @@ private:
 	void RemoveTask (CTask *pTask);
 	unsigned GetNextTask (void);		// returns index into m_pTask or MAX_TASKS if no task was found
 
+
+
 private:
-	CTask *m_pTask[MAX_TASKS];
-	unsigned m_nTasks;
 
 	CTask *m_pCurrent;
 	unsigned m_nCurrent;			// index into m_pTask
 
-	static CScheduler *s_pThis;
+	static CScheduler *s_pThis[CORES];
 };
 
 #endif

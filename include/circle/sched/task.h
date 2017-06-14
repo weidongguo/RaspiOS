@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015-2016  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -23,6 +23,7 @@
 #include <circle/sched/taskswitch.h>
 #include <circle/sysconfig.h>
 #include <circle/types.h>
+#include <circle/spinlock.h>
 
 enum TTaskState
 {
@@ -30,7 +31,8 @@ enum TTaskState
 	TaskStateBlocked,
 	TaskStateSleeping,
 	TaskStateTerminated,
-	TaskStateUnknown
+	TaskStateUnknown,
+	TaskStateRunning
 };
 
 class CScheduler;
@@ -44,13 +46,6 @@ public:
 	virtual void Run (void);
 
 private:
-	TTaskState GetState (void) const	{ return m_State; }
-	void SetState (TTaskState State)	{ m_State = State; }
-
-	unsigned GetWakeTicks (void) const	{ return m_nWakeTicks; }
-	void SetWakeTicks (unsigned nTicks)	{ m_nWakeTicks = nTicks; }
-
-	TTaskRegisters *GetRegs (void)		{ return &m_Regs; }
 
 	friend class CScheduler;
 
@@ -65,6 +60,45 @@ private:
 	TTaskRegisters	    m_Regs;
 	unsigned	    m_nStackSize;
 	u8		   *m_pStack;
+	CSpinLock SpinLock;  //each task has its own lock,
+
+	TTaskState GetState (void)
+	{
+		SpinLock.Acquire ();
+		TTaskState State = m_State;
+		SpinLock.Release ();
+		return State;
+	}
+
+	void SetState (TTaskState State)
+	{
+		SpinLock.Acquire ();
+		m_State = State;
+		SpinLock.Release ();
+	}
+
+	unsigned GetWakeTicks (void)
+	{
+		SpinLock.Acquire ();
+		unsigned WakeTicks = m_nWakeTicks;
+		SpinLock.Release ();
+		return WakeTicks;
+	}
+
+	void SetWakeTicks (unsigned nTicks)
+	{
+		SpinLock.Acquire ();
+		m_nWakeTicks = nTicks;
+		SpinLock.Release ();
+	}
+
+	TTaskRegisters *GetRegs (void)
+	{
+		SpinLock.Acquire ();
+		TTaskRegisters *regs = &m_Regs;
+		SpinLock.Release ();
+		return regs;
+	}
 };
 
 #endif
