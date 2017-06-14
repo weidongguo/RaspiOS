@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2014  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -18,14 +18,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
+#include "contextswitch.h"
+#include "thread.h"
 #include <hal/uart.h>
+#include "myTask.h"
+#include <circle/timer.h>
 
 static const char FromKernel[] = "kernel";
-
-CKernel::CKernel (void)
-:	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
+CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
-	m_Logger (m_Options.GetLogLevel (), &m_Timer)
+	m_Logger (m_Options.GetLogLevel (), &m_Timer),
+  m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
 {
 	m_ActLED.Blink (5);	// show we are alive
 }
@@ -56,7 +59,7 @@ boolean CKernel::Initialize (void)
 			pTarget = &m_Screen;
 		}
 
-		bOK = m_Logger.Initialize (pTarget);
+		bOK = m_Logger.Initialize (&m_Screen);
 	}
 
 	if (bOK)
@@ -69,7 +72,10 @@ boolean CKernel::Initialize (void)
 		bOK = m_Timer.Initialize ();
 	}
 
-  uart_init();
+	if (bOK)
+	{
+		bOK = m_CoreManager.Initialize();
+	}
 
 	return bOK;
 }
@@ -78,25 +84,31 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
-	m_Logger.Write (FromKernel, LogNotice, "An exception will occur after 15 seconds from now");
+	myTask *task1 = new myTask('1');
+	//m_Scheduler.Sleep(1);
+	myTask *task2 = new myTask('2');
+	//m_Scheduler.Sleep(1);
+	myTask *task3 = new myTask('3');
+	//m_Scheduler.Sleep(1);
+	myTask *task4 = new myTask('4');
+	//m_Scheduler.Sleep(1);
+	myTask *task5 = new myTask('5');
+	//m_Scheduler.Sleep(1);
+	myTask *task6 = new myTask('6');
 
-	// start timer to elapse after 15 seconds
-	m_Timer.StartKernelTimer (15 * HZ, TimerHandler);
+	//prevents compiler warnings about unused variables
+	(void)task1;
+	(void)task2;
+	(void)task3;
+	(void)task4;
+	(void)task5;
+	(void)task6;
 
-	// generate a log message every second
-	unsigned nTime = m_Timer.GetTime ();
-	while (1)
-	{
-		while (nTime == m_Timer.GetTime ())
-		{
-			// just wait a second
-		}
+	CTimer::Get()->MsDelay(100);
 
-		nTime = m_Timer.GetTime ();
-
-		m_Logger.Write (FromKernel, LogNotice, "Time is %u", nTime);
-
-    uart_puts("Time is here\r");
+	while(1) {
+		m_Logger.Write (FromKernel, LogNotice, "core %d is about to yield in main()", CScheduler::GetCore ());
+		m_Scheduler.Yield();
 	}
 
 	return ShutdownHalt;
