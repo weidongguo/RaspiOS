@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015-2016  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -42,11 +42,15 @@ CTask::CTask (unsigned nStackSize)
 
 CTask::~CTask (void)
 {
+	SpinLock.Acquire ();
+
 	assert (m_State == TaskStateTerminated);
 	m_State = TaskStateUnknown;
 
 	delete [] m_pStack;
 	m_pStack = 0;
+
+	SpinLock.Release ();
 }
 
 void CTask::Run (void)		// dummy method which is never called
@@ -54,6 +58,7 @@ void CTask::Run (void)		// dummy method which is never called
 	assert (0);
 }
 
+//only called from constructor, so it doesnt need lock
 void CTask::InitializeRegs (void)
 {
 	memset (&m_Regs, 0, sizeof m_Regs);
@@ -66,14 +71,16 @@ void CTask::InitializeRegs (void)
 	m_Regs.lr = (u32) &TaskEntry;
 }
 
+//does not need lock, SetState takes care of that
 void CTask::TaskEntry (void *pParam)
 {
 	CTask *pThis = (CTask *) pParam;
 	assert (pThis != 0);
+	assert(pThis->GetState() == TaskStateRunning);
 
 	pThis->Run ();
 
-	pThis->m_State = TaskStateTerminated;
+	pThis->SetState(TaskStateTerminated);
 	CScheduler::Get ()->Yield ();
 
 	assert (0);
