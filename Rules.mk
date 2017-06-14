@@ -3,7 +3,7 @@
 #
 # Circle - A C++ bare metal environment for Raspberry Pi
 # Copyright (C) 2014-2017  R. Stange <rsta2@o2online.de>
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -24,8 +24,8 @@ endif
 
 -include $(CIRCLEHOME)/Config.mk
 
-RASPPI	?= 2
-PREFIX	?= arm-eabi-
+RASPPI	?= 3
+PREFIX	?= arm-none-eabi-
 
 CC	= $(PREFIX)gcc
 CPP	= $(PREFIX)g++
@@ -56,6 +56,8 @@ CFLAGS	+= $(ARCH) -Wall -fsigned-char -fno-builtin -nostdinc -nostdlib -D__circl
 
 CPPFLAGS+= $(CFLAGS) -fno-exceptions -fno-rtti -std=c++14
 
+FLASH_DEST = /media/weidongguo/boot
+
 %.o: %.S
 	$(AS) $(AFLAGS) -c -o $@ $<
 
@@ -76,8 +78,8 @@ $(TARGET).img: $(OBJS) $(LIBS) $(CIRCLEHOME)/lib/startup.o $(CIRCLEHOME)/circle.
 clean:
 	rm -f *.o *.a *.elf *.lst *.img *.cir *.map *~ $(EXTRACLEAN)
 
-run : 
-	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel7.elf
+run :
+	qemu-system-arm -M raspi2 -m 128M -serial stdio -kernel kernel8-32.elf
 
 runimg :
 	qemu-system-arm -M raspi2 -m 128M -bios kernel7.img
@@ -86,12 +88,14 @@ runimg :
 bootcode.bin :
 	wget -nc https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/bootcode.bin
 start.elf :
-	wget -nc https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/start.elf	 
+	wget -nc https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/start.elf
 config.txt :
 	echo '' > config.txt
 
-install : kernel7 bootcode.bin start.elf config.txt 
-	echo 'unimplemented! copy files to sd card on real RP2'
+install : $(TARGET).img bootcode.bin start.elf config.txt
+	cp $(TARGET).img $(FLASH_DEST)
+#	echo 'unimplemented! copy files to sd card on real RP2'
+
 
 dockerenv:
 	test ! -f /.dockerenv # echo 'Run the command outside the docker container!'
@@ -99,7 +103,7 @@ dockerenv:
 code : dockerenv
 	docker run --rm --name arm -i -t -p 5900:5900 -v "$(shell pwd)":/work arm zsh
 
-dockerbuildimage : dockerenv ./docker/Dockerfile 
+dockerbuildimage : dockerenv ./docker/Dockerfile
 	docker build -t arm docker
 
 dockerupdateimage : dockerenv ./docker/Dockerfile

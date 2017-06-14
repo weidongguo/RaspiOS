@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2014  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -31,6 +31,9 @@
 #include <circle/timer.h>
 #include <circle/logger.h>
 #include <circle/types.h>
+#include <circle/sched/scheduler.h>
+
+#include "CoreManager.h"
 
 enum TShutdownMode
 {
@@ -48,7 +51,7 @@ public:
 	boolean Initialize (void);
 
 	TShutdownMode Run (void);
-	
+
 	static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
 
 private:
@@ -63,6 +66,9 @@ private:
 	CInterruptSystem	m_Interrupt;
 	CTimer			m_Timer;
 	CLogger			m_Logger;
+	CScheduler		m_Scheduler;
+
+	CoreManager m_CoreManager;
 };
 
 #endif
