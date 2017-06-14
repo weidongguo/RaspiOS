@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2014  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -60,10 +60,12 @@ public:
 	boolean Initialize (void);
 
 	TShutdownMode Run (void);
-	
+
 	static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
 	static void KeyPressedHandler (const char *pString);
-
+	// char* GetLinkForPhase2(void);
+	// char* GetDownloadLink(void);
+	// void Request(void);
 private:
 	// do not change this order
 	CMemorySystem		m_Memory;
@@ -82,9 +84,9 @@ private:
 	CNetSubSystem		m_Net;
 	CPWMSoundDevice		m_PWMSoundDevice;
 
-#ifdef ARM_ALLOW_MULTI_CORE	
+#ifdef ARM_ALLOW_MULTI_CORE
 	CoreManager m_CoreManager;
-#endif	
+#endif
 
 	static CKernel *s_pThis;
 };

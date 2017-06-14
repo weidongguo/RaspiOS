@@ -42,20 +42,23 @@
 static const char FromHTTPDaemon[] = "http";
 
 // const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
-
+// const u8 	TARGET_SERVER_IP[] = 	{207,241,228,108};
 const u8 	TARGET_SERVER_IP[] = 	{207,241,224,2}; //https::/archive.org
 // const u8 	TARGET_SERVER_IP[] = 	{151,101,65,69}; //https::/stackoverflow.com
 // const u8 	TARGET_SERVER_IP[] = 	{52,25,109,230}; //http://www.geeksforgeeks.org/
 
 const u16   TARGET_SERVER_PORT =	80;
 
-char Buffer[30 * 1024 * 1024];
-
+char Buffer[20 * 1024* 1024];
+// char* Buffer;
+char phase_2_link[1000] = {'\0'};
+char final_link[1000] = {'\0'};
 
 #define HOST_IP  		"169.237.118.12"
 
 //unsigned HTTPClient::s_nInstanceCount = 0;
-char* my_strstr(char *haystack, const char *needle) {
+char* my_strstr(char *haystack, const char *needle,int &flag) {
+  flag=0;
     if (haystack == 0 || needle == 0) {
         return 0;
     }
@@ -72,6 +75,8 @@ char* my_strstr(char *haystack, const char *needle) {
         }
         // Didn't match here.  Try again further along haystack.
     }
+    // printf("no match\n" );
+    flag=1;
     return 0;
 }
 
@@ -142,24 +147,77 @@ void HTTPClient::Request(const char* songName){
 		return;
 	}
 	CIPAddress targetIP = CIPAddress(TARGET_SERVER_IP);
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
-	int ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);
+  	CString Header;
 
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
+    // Header.Format ("GET http://207.241.224.2/dontwork HTTP/1.0\r\n"
+    //         //  "Connection: keep-alive\r\n"
+    //          "\r\n",songName);
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
+   int ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);
 
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
+   char* ptr = Buffer;
+  u32 totalLen = 0;
+   int i,temp=1;
+  // for(int j=0;j<4;j++){
+  //
+  //   if ((temp=m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT)) < 0)
+  // 	{
+  // 		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot send header");
+  //
+  // 		delete m_pSocket;
+  // 		m_pSocket = 0;
+  //
+  // 		return;
+  // 	}
+  //   CLogger::Get()->Write("HTTPClient", LogDebug, "Temp: %d", temp);
+  //
+  //
+  // 	for( i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
+  // 		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+  // 		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
+  // 		//CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
+  //     if(i==70)  // No need to receive the entire html page. Only a part of it is necessary.
+  //       break;
+  // 		ptr += ret;
+  // 		totalLen += ret;
+  // 	}
+  // 	// CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
+  // 	CLogger::Get()->Write("HTTPClient", LogDebug, "Done %d",j);
+  // 	CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
+  //   CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
+  //
+  //   delete m_pSocket;
+  //   m_pSocket = new CSocket (m_pNetSubSystem, IPPROTO_TCP);;
+  //   if (m_pSocket->Bind (m_nPort) < 0)
+  // 	{
+  // 		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot bind socket (port %u)", m_nPort);
+  //
+  // 		delete m_pSocket;
+  // 		m_pSocket = 0;
+  //
+  // 		return;
+  // 	}
+  //   CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
+  //    ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);
+  //
+  //   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
+  // } while(1);
 
 	// send HTTP response header
-	CString Header;
 
-	// Header.Format ("GET / HTTP/1.1\r\n"
-	// 	       "Host:  www.geeksforgeeks.org\r\n"
-	// 	       "Connection: keep-alive\r\n"
-	// 	       "\r\n");
-	Header.Format ("GET /search.php?query=%s HTTP/1.1\r\n"
-		       "Host: " HOST_IP "\r\n"
-		       "Connection: keep-alive\r\n"
-		       "\r\n",songName);
-
+  Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
+           "Connection: keep-alive\r\n"
+           "\r\n",songName);
+  //
+  // Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
+  //          "Connection: keep-alive\r\n"
+  //          "\r\n",songName);
+	// // // Header.Format ("GET /search.php?query=%s HTTP/1.1\r\n"
+	// // // 	       "Host: " HOST_IP "\r\n"
+	// // // 	       "Connection: keep-alive\r\n"
+	// // // 	       "\r\n",songName);
+  // //
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Header: %s", (const char*)(Header));
 
 	if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
@@ -171,34 +229,196 @@ void HTTPClient::Request(const char* songName){
 
 		return;
 	}
-
-	char *ptr = Buffer;
-	u32 totalLen = 0;
-	 int i;
+  // // //
+  // // //
+	// char *ptr = Buffer;
+	// u32 totalLen = 0;
+	//  int i;
+  // // // // //
 	for( i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
 		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
 		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
-		if(i==30)
-			break;
 		//CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
+    // if(i==70)  // No need to receive the entire html page. Only a part of it is necessary.
+    //   break;
 		ptr += ret;
 		totalLen += ret;
 	}
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
+	// CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
   CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Number of blokcs received: %d", i);
+  /*memset(Buffer,'\0',2000);
+  Buffer = "<div> <div class=\"C234\"> \\
+              <div \\
+        class=\" \\
+          item-ttl \\
+                                      C C2 \\
+        \" \\
+      > \\
+        <a href=\"/details/adele_201601\" title=\"adele\"> \\
+                          <div class=\"tile-img\">\\
+              <img class=\"item-img \" source=\"/services/img/adele_201601\" style=\"height:123px\">\\
+            </div><!--/.tile-img-->\\
+\\
+\\
+\\
+          <div class=\"ttl\">\\
+            adele              </div>\\
+        </a>\\
+      </div>\\
+\\
+    <div class=\"hidden-tiles pubdate C C3\">\\
+      <nobr class=\"hidden-xs\">Jan 16, 2016</nobr>\\
+      <nobr class=\"hidden-sm hidden-md hidden-lg\">01/16</nobr>\\
+    </div>\\
+\\
+    <div class=\"by C C4\">\\
+\\
+                        </div><!--/.C4-->\\
+  </div><!--/.C234-->\\
+\\
+\\
+  <div class=\"mt-icon C C5\">\\
+              <span class=\"iconochive-movies\"  aria-hidden=\"true\"></span><span class=\"sr-only\">movies</span>              </div>\\
+\\
+\\
+          <h6 class=\"stat \">\\
+      <span class=\"iconochive-eye\"  aria-hidden=\"true\"></span><span class=\"sr-only\">eye</span>          <nobr>4,142</nobr>\\
+    </h6>\\
+\\
+\\
+          <h6 class=\"stat\">\\
+      <span class=\"iconochive-favorite\"  aria-hidden=\"true\"></span><span class=\"sr-only\">favorite</span>          0        </h6>\\
+\\
+              <h6 class=\"stat\">\\
+        <span class=\"iconochive-comment\"  aria-hidden=\"true\"></span><span class=\"sr-only\">comment</span>            0          </h6>\\
+                      </div><!--/.item-ia-->\\
+\\
+\\
+<div class=\"details-ia hidden-tiles\">\\
+  <div class=\"C1\"></div>\\
+  <div class=\"C234\">\\
+    <span>adele</span><br/>                Topic: adele<br/>                      </div>\\
+  <div class=\"C5\"></div>\\
+</div>\\
+\\
+\\
+\\
+<div class=\"item-ia\" data-id=\"Adele_201703\">\\
+\\
+        <a class=\"stealth\" tabindex=\"-1\" href=\"/details/opensource_audio\">\\
+    <div class=\"item-parent\">\\
+      <div class=\"item-parent-img\"><img source=\"/services/img/opensource_audio\"/></div>\\
+      <div class=\"item-parent-ttl\">Community Audio</div>\\
+    </div><!--/.item-parent-->\\
+  </a>\\
+\\
+\\
+  <div class=\"hidden-tiles views C C1\">\\
+              <nobr class=\"hidden-xs\">20,346</nobr>\\
+      <nobr class=\"hidden-sm hidden-md hidden-lg\">20K</nobr>\\
+          </div>\\
+\\
+\\
+\\
+\\
+  <div class=\"C234\">\\
+              <div\\
+        class=\"\\
+          item-ttl\\
+                                      C C2\\
+        \"\\
+      >\\
+        <a href=\"/details/Adele_201703\" title=\"Adele\">\\
+                          <div class=\"tile-img\">\\
+              <img class=\"item-img \" source=\"/services/img/Adele_201703\" style=\"height:45px\">\\
+            </div><!--/.tile-img--> \\
+            \\
+\\
+                          <div class=\"ttl\">\\
+                            Adele              </div>\\
+                        </a>\\
+                      </div>\\
+\\
+                    <div class=\"hidden-tiles pubdate C C3\">\\
+                      <nobr class=\"hidden-xs\">Mar 12, 2017</nobr>\\
+                      <nobr class=\"hidden-sm hidden-md hidden-lg\">03/17</nobr>\\
+                    </div>\\
+\\
+                    <div class=\"by C C4\">\\
+\\
+                                  <span class=\"hidden-lists\">by</span>\\
+                        <span class=\"byv\"\\
+                              title=\"Adele\">Adele</span>\\
+                                        </div><!--/.C4-->\\
+                  </div><!--/.C234-->\\
+\\
+\\
+                  <div class=\"mt-icon C C5\">\\
+                              <span class=\"iconochive-audio\"  aria-hidden=\"true\"></span><span class=\"sr-only\">audio</span>              </div>";
+*/
+  // memset(phase_2_link,'\0',1000);
+  // memset(final_link,'\0',1000);
+   GetLinkForPhase2();
+  CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", phase_2_link);
+ //  //while(1);
+ // Header.Format ("GET http://207.241.224.2/search.php?query=adele HTTP/1.0\r\n"
+ //          "Connection: keep-alive\r\n"
+ //          "\r\n");
 
-  return;
+ // Header.Format ("GET http://archive.org/download/Hello_20161104/Hello.mp3 HTTP/1.0\r\n"
+ //          "Connection: keep-alive\r\n"
+ //          "\r\n");
+ // Header.Format ("GET http://ia601908.us.archive.org/10/items/Hello_20161104/Hello.mp3 HTTP/1.0\r\n"
+ //          "Connection: keep-alive\r\n"
+ //          "\r\n");
+		//THis is working.....
+    // Header.Format ("GET http://207.241.224.2/details/Adele_201703/ HTTP/1.0\r\n"
+    //          "Connection: keep-alive\r\n"
+    //          "\r\n");
 
-	char * phase_2_link = GetLinkForPhase2();
+    // m_pSocket = new CSocket (m_pNetSubSystem, IPPROTO_TCP);
+    // assert (m_pSocket != 0);
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "Binding...");
+    // if (m_pSocket->Bind (m_nPort) < 0)
+    // {
+    //   CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot bind socket (port %u)", m_nPort);
+    //
+    //   delete m_pSocket;
+    //   m_pSocket = 0;
+    //
+    //   return;
+    // }
+    // targetIP = CIPAddress(TARGET_SERVER_IP);
+    // delete m_pSocket;
+    // m_pSocket = new CSocket (m_pNetSubSystem, IPPROTO_TCP);
+    // assert (m_pSocket != 0);
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "Binding...");
+    // if (m_pSocket->Bind (m_nPort) < 0)
+    // {
+    //   CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot bind socket (port %u)", m_nPort);
+    //
+    //   delete m_pSocket;
+    //   m_pSocket = 0;
+    //
+    //   return;
+    // }
+    //
+    //   CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
+    //   ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);
+    //
+    //   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
 
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", phase_2_link);
-		Header.Format ("GET /%s HTTP/1.1\r\n"
-			       "Host: " HOST_IP "\r\n"
-			       "Connection: keep-alive\r\n"
-			       "\r\n",phase_2_link);
+    // Header for phase 2
+    Header.Format ("GET http://207.241.224.2/details/Adele_201703/ HTTP/1.0\r\n"
+             "Connection: keep-alive\r\n"
+             "\r\n");
+    // Header.Format ("GET http://207.241.224.2%s/ HTTP/1.0\r\n"
+    //          "Connection: keep-alive\r\n"
+    //          "\r\n",phase_2_link);
+
 
 		CLogger::Get()->Write("HTTPClient", LogDebug, "Header: %s", (const char*)(Header));
 
@@ -211,25 +431,78 @@ void HTTPClient::Request(const char* songName){
 
 			return;
 		}
+    CLogger::Get()->Write("HTTPClient", LogDebug, "Header sent..\n");
 
+    //
 		ptr= Buffer;
 		totalLen = 0;
-		for( i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
-			CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
-			CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
-			//CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
-			ptr += ret;
-			totalLen += ret;
-		}
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
-	  CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Number of blokcs received: %d", i);
+    // ret = m_pSocket->Receive(ptr, 300, 0);
 
-		char* final_link = GetDownloadLink();
+    for(i= 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
+     CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+     CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
+     CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
+    //  if(i==80)  // No need to receive the entire html page. Only a part of it is necessary.
+    //    break;
+     ptr += ret;
+     totalLen += ret;
+   }
+  //  CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
+   CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Number of blokcs received: %d", i);
+
+    // while (1) {
+    //
+    // }
+    // return;
+    /*Buffer="    <div>            <a class=\"stealth\" href=\"/download/Hello_20161104/Hello.ogg\" title=\"3.7M\">\\
+                      <span class=\"hover-badge-stealth\">\\
+                        <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                    1 file                  </span>\\
+                    </a>\\
+                  </div>\\
+                                  <a class=\"format-summary download-pill\" href=\"/download/Hello_20161104/Hello.ogg\" title=\"3.7M\" data-toggle=\"tooltip\" data-placement=\"auto left\" data-container=\"body\">\\
+                      OGG VORBIS                  <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                </a>\\
+                              </div>\\
+                          <div class=\"format-group\">\\
+                                <div class=\"summary-rite\">\\
+                    <a class=\"stealth\" href=\"/download/Hello_20161104/Hello_20161104_archive.torrent\" title=\"2.5K\">\\
+                      <span class=\"hover-badge-stealth\">\\
+                        <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                   1 file                  </span>\\
+                    </a>\\
+                  </div>\\
+                                  <a class=\"format-summary download-pill\" href=\"/download/Hello_20161104/Hello_20161104_archive.torrent\" title=\"2.5K\" data-toggle=\"tooltip\" data-placement=\"auto left\" data-container=\"body\">\\
+                      TORRENT                  <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                </a>\\
+                              </div>\\
+                          <div class=\"format-group\">\\
+                                <div class=\"summary-rite\">\\
+                    <a class=\"stealth\" href=\"/download/Hello_20161104/Hello_20161104_vbr.m3u\" title=\"5.6M\">\\
+                      <span class=\"hover-badge-stealth\">\\
+                        <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                   1 file                  </span>\\
+                    </a>\\
+                  </div>\\
+                                  <a class=\"format-summary download-pill\" href=\"/download/Hello_20161104/Hello_20161104_vbr.m3u\" title=\"5.6M\" data-toggle=\"tooltip\" data-placement=\"auto left\" data-container=\"body\">\\
+                      VBR M3U                  <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                </a>\\
+                              </div>\\
+                          <div class=\"format-group\">\\
+                                <div class=\"summary-rite\">\\
+                    <a class=\"stealth\" href=\"/download/Hello_20161104/Hello.mp3\" title=\"5.6M\">\\
+                      <span class=\"hover-badge-stealth\">\\
+                        <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                    1 file                  </span>\\
+                    </a>\\
+                  </div>\\
+                                  <a class=\"format-summary download-pill\" href=\"/download/Hello_20161104/Hello.mp3\" title=\"5.6M\" data-toggle=\"tooltip\" data-placement=\"auto left\" data-container=\"body\">\\
+                      VBR MP3                  <span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span>                </a>\\
+                              </div>\\
+                        <div class=\"show-all\">\\
+                <div class=\"pull-right\">\\
+                  <a class=\"boxy-ttl hover-badge\" href=\"/compress/Hello_20161104\"><span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span> 8 Files</a><br/>";
+*/
+     GetDownloadLink();
 
 		CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
+    while(1);
 		Header.Format ("GET /%s HTTP/1.1\r\n"
 			       "Host: " HOST_IP "\r\n"
 			       "Connection: keep-alive\r\n"
@@ -252,7 +525,7 @@ void HTTPClient::Request(const char* songName){
 		for( i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
 			CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
 			CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
-			//CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
+			// CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
 			ptr += ret;
 			totalLen += ret;
 		}
@@ -278,15 +551,21 @@ char * HTTPClient::GetLinkForPhase2(){
 	//saveptr = (char *)Buffer;
 	//  token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
   // printf("first %s\n",token );
-  token = my_strstr(Buffer,"<head>");
+  int flag=0;
+  token = my_strstr(Buffer,"<div>",flag);
+  memset(songlink,'\0',sizeof(songlink));
+  int i=0;
 	do {
+    i++;
     //for(int i=0;i<200;i++)
 
     // token = strtok_r(0,"<head>",&saveptr);
     // printf("middle %s\n",token );
-    token = my_strstr(token,"<div class=\"C234\">");
-    token = my_strstr(token,"<div class=\"C234\">");
-    token = my_strstr(token,"<a href=\"");
+    token = my_strstr(token,"<div class=\"C234\">",flag);
+    token = my_strstr(token,"<div class=\"C234\">",flag);
+    token = my_strstr(token,"<a href=\"",flag);
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "token... \n %s", token);
+
 		token1 = strtok_r(token,"\"",&saveptr);
     token1 = strtok_r(0,"\"",&saveptr);
     // printf("second %s\n",token1 );
@@ -294,21 +573,27 @@ char * HTTPClient::GetLinkForPhase2(){
     // printf("third %s\n",saveptr );
 		// token = strtok_r(0,"<a href=\"",&saveptr);
     // printf("fourth %s\n",token1 );
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "token1... \n %s", token1);
+
 		// char* token1 = strtok_r(token,"\"",&saveptr);  // this token contains the song link.
     //return token1;
 
-		strcpy(songlink, token1);
-
-    token = my_strstr(saveptr,"<div class=\"mt-icon C C5\">");
+		strcpy(phase_2_link, token1);
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "token1... \n %s", songlink);
+    token = my_strstr(saveptr,"<div class=\"mt-icon C C5\">",flag);
     // printf("test %s\n",token );
-    token = my_strstr(token,"<span class=\"iconochive-");
+    token = my_strstr(token,"<span class=\"iconochive-",flag);
     // printf("test %s\n",token );
 		// token = strtok_r(0,"<div class=\"mt-icon C C5\">",&saveptr);
 		// token = strtok_r(0,"<span class=\"iconochive-",&saveptr);
 		token1 = strtok_r(token,"-",&saveptr);
     token1 = strtok_r(0,"\"",&saveptr); // token1 contains whether it's audio or video or text...
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "token1 (checking for audio)... \n %s", token1);
     token=saveptr;
+  // }while(i<2);
 	} while(strcmp(token1,"audio") != 0);
+  // if(strcmp(token1,"audio")==0)
+  //   CLogger::Get()->Write("HTTPClient", LogDebug, "audio found\n");
 	return songlink;
 }
 
@@ -316,21 +601,48 @@ char * HTTPClient::GetLinkForPhase2(){
 char* HTTPClient::GetDownloadLink(){
 	char* saveptr,*token,*token1,songlink[1000];
   // token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
-token = my_strstr(Buffer,"<head>");
-	int cnt=0,len;
-	do{
-		cnt++;
-    token = my_strstr(token,"<a class=\"format-summary download-pill\"");
-		// token = strtok_r(buffer,"<a class=\"format-summary download-pill\"", &saveptr);
-    token = my_strstr(token,"href=\"");
-		token1 = strtok_r(token,"\"",&saveptr);
-		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
 
-    // printf("songlink.. %s\n", token1 );
-    strcpy(songlink, token1);
-		len = strlen(token1);
-    token=saveptr;
-  }while(strcmp(token1+len-4,"mp3")!=0 && cnt<4); // If last 3 characters are
+	int cnt=0,len;
+  int flag=0;
+  token = my_strstr(Buffer,"<a class=\"stealth download-pill\"",flag);
+
+  if(flag==1)
+  	{
+      // printf("flag=1...\n" );
+      token = my_strstr(Buffer,"<div>",flag);
+      do{
+    		cnt++;
+        token = my_strstr(token,"<a class=\"format-summary download-pill\"",flag);
+    		// token = strtok_r(buffer,"<a class=\"format-summary download-pill\"", &saveptr);
+        token = my_strstr(token,"href=\"",flag);
+    		token1 = strtok_r(token,"\"",&saveptr);
+    		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
+
+        // printf("songlink.. %s\n", token1 );
+        strcpy(songlink, token1);
+    		len = strlen(token1);
+        token=saveptr;
+      }while(strcmp(token1+len-3,"mp3")!=0); // If last 3 characters are
+  }
+  else{
+    // printf("flag=0...\n" );
+      token = my_strstr(Buffer,"<div>",flag);
+      do {
+
+        token = my_strstr(token,"<a class=\"stealth download-pill\"",flag);
+        token = my_strstr(token,"href=\"",flag);
+
+        token1 = strtok_r(token,"\"",&saveptr);
+    		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
+
+        strcpy(songlink, token1);
+        //  printf("songlink.. %s\n", songlink );
+    		len = strlen(token1);
+        token=saveptr;
+      } while(strcmp(token1+len-3,"mp3")!=0);
+  }
+  //  printf("songlink.. %s\n", songlink );
+   strcpy(final_link,songlink);
 	return songlink;
 }
 

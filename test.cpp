@@ -4,10 +4,11 @@
 #include <cstdlib>
 
 using namespace std;
-
+char final_link[100] = {'\0'};
 char Buffer[3*1024];
 char* buffer = 0;
-char* my_strstr(char *haystack, const char *needle) {
+char* my_strstr(char *haystack, const char *needle,int &flag) {
+  flag=0;
     if (haystack == 0 || needle == 0) {
         return 0;
     }
@@ -24,42 +25,53 @@ char* my_strstr(char *haystack, const char *needle) {
         }
         // Didn't match here.  Try again further along haystack.
     }
+    printf("no match\n" );
+    flag=1;
     return 0;
 }
 
 
 // Parse the buffer to get the link.
 char * GetLinkForPhase2(){
-	char* saveptr,*token,*token1,songlink[1000];
+	 char* saveptr,*token,*token1,songlink[1000];
+  // token = (char*) memset(token,'\0',100000);
+  // token1 = (char*)memset(token1,'\0',100000);
+  memset(songlink,'\0',sizeof(songlink));
 	//saveptr = (char *)Buffer;
 	//  token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
   // printf("first %s\n",token );
-  token = my_strstr(buffer,"<head>");
+  int flag=0;
+  token = my_strstr(buffer,"<head>",flag);
 	do {
     //for(int i=0;i<200;i++)
 
     // token = strtok_r(0,"<head>",&saveptr);
     // printf("middle %s\n",token );
-    token = my_strstr(token,"<div class=\"C234\">");
-    token = my_strstr(token,"<div class=\"C234\">");
-    token = my_strstr(token,"<a href=\"");
+    token = my_strstr(token,"<div class=\"C234\">",flag);
+    token = my_strstr(token,"<div class=\"C234\">",flag);
+    token = my_strstr(token,"<a href=\"",flag);
 		token1 = strtok_r(token,"\"",&saveptr);
     token1 = strtok_r(0,"\"",&saveptr);
     // printf("second %d\n",strlen(token1) );
 		// token = strtok_r(0,"<div class=\"C234\">",&saveptr);
     // printf("third %s\n",saveptr );
 		// token = strtok_r(0,"<a href=\"",&saveptr);
-    printf("%s\n",token1 );
+    //printf("%s\n",token1 );
 		// char* token1 = strtok_r(token,"\"",&saveptr);  // this token contains the song link.
     //return token1;
-
-		strcpy(songlink, token1);
+    // for (size_t i = 0; i < 1; i++) {
+    //   printf("%c",*(token1+i) );
+    //   if(*(token1+i)=='\0')
+    //   {printf("here it is \n" );}
+    // }
+    //printf("\n");
+    strcpy(songlink, token1);
     // songlink[strlen(songlink)]='\0';
     // printf("%d\n",strlen(songlink));
     // printf("test %s\n",songlink);
-    token = my_strstr(saveptr,"<div class=\"mt-icon C C5\">");
+    token = my_strstr(saveptr,"<div class=\"mt-icon C C5\">",flag);
     // printf("test %s\n",token );
-    token = my_strstr(token,"<span class=\"iconochive-");
+    token = my_strstr(token,"<span class=\"iconochive-",flag);
     // printf("test %s\n",token );
 		// token = strtok_r(0,"<div class=\"mt-icon C C5\">",&saveptr);
 		// token = strtok_r(0,"<span class=\"iconochive-",&saveptr);
@@ -74,21 +86,48 @@ char * GetLinkForPhase2(){
 char* GetDownloadLink(){
 	char* saveptr,*token,*token1,songlink[1000];
   // token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
-token = my_strstr(buffer,"<head>");
-	int cnt=0,len;
-	do{
-		cnt++;
-    token = my_strstr(token,"<a class=\"format-summary download-pill\"");
-		// token = strtok_r(buffer,"<a class=\"format-summary download-pill\"", &saveptr);
-    token = my_strstr(token,"href=\"");
-		token1 = strtok_r(token,"\"",&saveptr);
-		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
 
-    // printf("songlink.. %s\n", token1 );
-    strcpy(songlink, token1);
-		len = strlen(token1);
-    token=saveptr;
-  }while(strcmp(token1+len-4,"mp3")!=0 && cnt<4); // If last 3 characters are
+	int cnt=0,len;
+  int flag=0;
+  token = my_strstr(buffer,"<a class=\"stealth download-pill\"",flag);
+
+  if(flag==1)
+  	{
+      printf("flag=1...\n" );
+      token = my_strstr(buffer,"<div>",flag);
+      do{
+    		cnt++;
+        token = my_strstr(token,"<a class=\"format-summary download-pill\"",flag);
+    		// token = strtok_r(buffer,"<a class=\"format-summary download-pill\"", &saveptr);
+        token = my_strstr(token,"href=\"",flag);
+    		token1 = strtok_r(token,"\"",&saveptr);
+    		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
+
+        printf("songlink.. %s\n", token1 );
+        strcpy(songlink, token1);
+    		len = strlen(token1);
+        token=saveptr;
+      }while(strcmp(token1+len-3,"mp3")!=0); // If last 3 characters are
+  }
+  else{
+    printf("flag=0...\n" );
+      token = my_strstr(buffer,"<div>",flag);
+      do {
+
+        token = my_strstr(token,"<a class=\"stealth download-pill\"",flag);
+        token = my_strstr(token,"href=\"",flag);
+
+        token1 = strtok_r(token,"\"",&saveptr);
+    		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
+
+        strcpy(songlink, token1);
+         printf("songlink.. %s\n", songlink );
+    		len = strlen(token1);
+        token=saveptr;
+      } while(strcmp(token1+len-3,"mp3")!=0);
+  }
+   printf("songlink.. %s\n", songlink );
+   strcpy(final_link,songlink);
 	return songlink;
 }
 
@@ -111,10 +150,12 @@ int main(int argc, char const *argv[]) {
     }
     fclose (f);
   }
+  printf("\n" );
   char * phase_2_link = GetLinkForPhase2();
+
   printf("phase_2_link... %s\n",phase_2_link );
 
-  fileName = "index.html.1"; /* should check that argc > 1 */
+  fileName = "Hello_20161104"; /* should check that argc > 1 */
 
   buffer = 0;
   f = fopen (fileName, "rb");
@@ -130,7 +171,7 @@ int main(int argc, char const *argv[]) {
     }
     fclose (f);
   }
-  char * final_link = GetDownloadLink();
+   GetDownloadLink();
   printf("Final_download_link... %s\n",final_link );
     // FILE* file = fopen(fileName, "r"); /* should check the result */
     // char *ptr = Buffer;
