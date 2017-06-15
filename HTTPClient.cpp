@@ -28,6 +28,7 @@
 #include <circle/string.h>
 #include <circle/util.h>
 #include <assert.h>
+#include "kernel.h"
 
 #include "HTTPClient.h"
 #include "Keyboard.h"
@@ -53,6 +54,7 @@ char Buffer[20 * 1024* 1024];
 // char* Buffer;
 char phase_2_link[1000] = {'\0'};
 char final_link[1000] = {'\0'};
+char newloc[1000] = {'\0'};
 
 #define HOST_IP  		"169.237.118.12"
 
@@ -121,7 +123,7 @@ void HTTPClient::Run (void)
   	if(keyboard->IsEndOfLine())
   		Request(keyboard->GetBuffer());
   }
-  else if(m_phase==2){
+  else if(m_phase==2 || m_phase==3){
      Request(m_request_uri);
   }
 	/*
@@ -137,7 +139,7 @@ void HTTPClient::Run (void)
 	*/
 }
 
-void HTTPClient::Request(const char* request){
+void HTTPClient::Request( char* request){
  	CLogger::Get()->Write("HTTPClient", LogDebug, "Request: %s\n", request);
   CLogger::Get()->Write("HTTPClient", LogDebug, "m_nPort: %d\n", m_nPort);
 	assert (m_pNetSubSystem != 0);
@@ -212,15 +214,20 @@ void HTTPClient::Request(const char* request){
   // } while(1);
 
 	// send HTTP response header
-
+  char requeste[1000]={'\0'};
+  modifysong(request,requeste);
   if(m_phase==1)
     Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
              "Connection: keep-alive\r\n"
-             "\r\n",request);
+             "\r\n",requeste);
   else if(m_phase==2)
     Header.Format ("GET http://207.241.224.2%s/ HTTP/1.0\r\n"
            "Connection: keep-alive\r\n"
            "\r\n",m_request_uri);
+  else if(m_phase==3)
+    Header.Format ("GET http://207.241.224.2%s HTTP/1.0\r\n"
+         "Connection: keep-alive\r\n"
+         "\r\n",m_request_uri);
   //
   // Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
   //          "Connection: keep-alive\r\n"
@@ -390,7 +397,11 @@ void HTTPClient::Request(const char* request){
     CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
     CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", link);
   }
-
+  else if(m_phase==3)
+  {
+     getnewlocation();
+     link = newloc;
+  }
  //  //while(1);
  // Header.Format ("GET http://207.241.224.2/search.php?query=adele HTTP/1.0\r\n"
  //          "Connection: keep-alive\r\n"
@@ -679,6 +690,17 @@ char* HTTPClient::GetDownloadLink(){
 	return songlink;
 }
 
+void HTTPClient::getnewlocation(){
+  char* saveptr,*token,*token1;
+  int flag;
+    token = my_strstr(Buffer,"Location:",flag);
+    token1 = strtok_r(token,":",&saveptr);
+    while (*(saveptr)==' ') {
+      saveptr++;
+    }
+    CLogger::Get()->Write("HTTPClient", LogDebug, "new location: %s",saveptr);
+    strcpy(newloc, saveptr);
+}
 
 /*
 void HTTPClient::Listener (void)

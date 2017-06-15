@@ -95,9 +95,10 @@ private:
 	void Listener (void);			// accepts incoming connections and creates worker task
 	void Worker (void);			// processes a connection
 
-	void Request(const char *songName);
+	void Request( char *songName);
   char* GetLinkForPhase2(void);
 	char* GetDownloadLink(void);
+	void getnewlocation(void);
 	THTTPStatus ParseRequest (void);
 	THTTPStatus ParseMethod (char *pLine);
 	THTTPStatus ParseHeaderField (char *pLine);

@@ -38,6 +38,7 @@
 #include <circle/sched/scheduler.h>
 #include <circle/pwmsounddevice.h>
 //#include <circle/usb/usbkeyboard.h>
+#include <circle/net/dnsclient.h>
 
 #include "CoreManager.h"
 #include "Thread.h"
@@ -50,6 +51,8 @@ enum TShutdownMode
 	ShutdownHalt,
 	ShutdownReboot
 };
+
+void modifysong(char* song,char* newsong);
 
 class CKernel
 {
@@ -82,7 +85,9 @@ private:
   	CDWHCIDevice		m_DWHCI;
 	CScheduler		m_Scheduler;
 	CNetSubSystem		m_Net;
+	CDNSClient m_Dns;
 	CPWMSoundDevice		m_PWMSoundDevice;
+
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	CoreManager m_CoreManager;

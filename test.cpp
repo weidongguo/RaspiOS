@@ -132,7 +132,33 @@ char* GetDownloadLink(){
 }
 
 
+void modifysong(char* song1,char* song2)
+{
+	size_t i,j;
+	for ( i = 0,j=0; *(song1+i)!='\0'; i++) {
+		if(*(song1+i)==' ')
+		{
+			 *(song2+j) = '%'; j++;
+			 *(song2+j) = '2'; j++;
+			 *(song2+j) = '0'; j++;
+		}
+		else
+		{
+			*(song2+j)= *(song1+i); j++;
+		}
+	}
+	*(song2+j)='\0';
+}
+
 int main(int argc, char const *argv[]) {
+
+  // char song[100]={'\0'};
+  // char newsong[100]={'\0'};
+  // strcpy(song,"adele hello world");
+  // modifysong(song,newsong);
+  // printf("song: %s\n",song);
+  // printf("newsong: %s\n",newsong);
+  // return 0;
   char const*  fileName = "search.php?query=adele"; /* should check that argc > 1 */
 
   //char * buffer = 0;
@@ -155,7 +181,7 @@ int main(int argc, char const *argv[]) {
 
   printf("phase_2_link... %s\n",phase_2_link );
 
-  fileName = "Hello_20161104"; /* should check that argc > 1 */
+  fileName = "archive_Adele_201703.html"; /* should check that argc > 1 */
 
   buffer = 0;
   f = fopen (fileName, "rb");

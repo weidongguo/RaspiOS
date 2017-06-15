@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015-2016  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -24,6 +24,7 @@
 #include <circle/macros.h>
 #include <circle/util.h>
 #include <assert.h>
+#include <circle/logger.h>
 
 #define MAX_HOSTNAME_SIZE	256
 #define DNS_MAX_MESSAGE_SIZE	512
@@ -94,7 +95,7 @@ CDNSClient::~CDNSClient (void)
 boolean CDNSClient::Resolve (const char *pHostname, CIPAddress *pIPAddress)
 {
 	assert (pHostname != 0);
-
+  CLogger::Get()->Write("dnsclient", LogDebug, "Inside Resolve");
 	if ('1' <= *pHostname && *pHostname <= '9')
 	{
 		return FALSE;
@@ -161,7 +162,7 @@ boolean CDNSClient::Resolve (const char *pHostname, CIPAddress *pIPAddress)
 	}
 	memcpy (pQuery, &QueryTrailer, sizeof QueryTrailer);
 	pQuery += sizeof QueryTrailer;
-	
+
 	int nSize = pQuery - Buffer;
 	assert (nSize <= DNS_MAX_MESSAGE_SIZE);
 
@@ -176,9 +177,9 @@ boolean CDNSClient::Resolve (const char *pHostname, CIPAddress *pIPAddress)
 		{
 			return FALSE;
 		}
-
+		CLogger::Get()->Write("dnsclient", LogDebug, "Before yield in resolve...");
 		CScheduler::Get ()->MsSleep (1000);
-
+		CLogger::Get()->Write("dnsclient", LogDebug, "After yield in resolve...");
 		nRecvSize = Socket.Receive (RecvBuffer, DNS_MAX_MESSAGE_SIZE, MSG_DONTWAIT);
 		assert (nRecvSize < DNS_MAX_MESSAGE_SIZE);
 		if (nRecvSize < 0)

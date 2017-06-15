@@ -3,7 +3,7 @@
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2015-2016  R. Stange <rsta2@o2online.de>
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -176,7 +176,7 @@ unsigned CIPAddress::GetSize (void) const
 
 void CIPAddress::Format (CString *pString) const
 {
-	assert (m_bValid);
+	//assert (m_bValid);
 	assert (pString != 0);
 	pString->Format ("%u.%u.%u.%u",
 			m_nAddress & 0xFF, m_nAddress >> 8 & 0xFF,
