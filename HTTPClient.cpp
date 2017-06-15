@@ -44,9 +44,10 @@ static const char FromHTTPDaemon[] = "http";
 
 // const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
 // const u8 	TARGET_SERVER_IP[] = 	{207,241,228,108};
-const u8 	TARGET_SERVER_IP[] = 	{207,241,224,2}; //https::/archive.org
+// const u8 	TARGET_SERVER_IP[] = 	{207,241,224,2}; //https::/archive.org
 // const u8 	TARGET_SERVER_IP[] = 	{151,101,65,69}; //https::/stackoverflow.com
 // const u8 	TARGET_SERVER_IP[] = 	{52,25,109,230}; //http://www.geeksforgeeks.org/
+const u8 	TARGET_SERVER_IP[] = 	{207,241,228,127};
 
 const u16   TARGET_SERVER_PORT =	80;
 
@@ -59,28 +60,7 @@ char newloc[1000] = {'\0'};
 #define HOST_IP  		"169.237.118.12"
 
 //unsigned HTTPClient::s_nInstanceCount = 0;
-char* my_strstr(char *haystack, const char *needle,int &flag) {
-  flag=0;
-    if (haystack == 0 || needle == 0) {
-        return 0;
-    }
 
-    for ( ; *haystack; haystack++) {
-        // Is the needle at this point in the haystack?
-        const char *h, *n;
-        for (h = haystack, n = needle; *h && *n && (*h == *n); ++h, ++n) {
-            // Match is progressing
-        }
-        if (*n == '\0') {
-            // Found match!
-            return haystack;
-        }
-        // Didn't match here.  Try again further along haystack.
-    }
-    // printf("no match\n" );
-    flag=1;
-    return 0;
-}
 
 HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen,char* uri,int phase, int nPort, CSocket *pSocket, unsigned nMaxContentSize, int finish)
 :	CTask (HTTPD_STACK_SIZE),
@@ -123,7 +103,7 @@ void HTTPClient::Run (void)
   	if(keyboard->IsEndOfLine())
   		Request(keyboard->GetBuffer());
   }
-  else if(m_phase==2 || m_phase==3){
+  else if(m_phase==2 || m_phase==3 ||m_phase==4){
      Request(m_request_uri);
   }
 	/*
@@ -228,6 +208,10 @@ void HTTPClient::Request( char* request){
     Header.Format ("GET http://207.241.224.2%s HTTP/1.0\r\n"
          "Connection: keep-alive\r\n"
          "\r\n",m_request_uri);
+  else if(m_phase==4)
+    Header.Format ("GET %s HTTP/1.0\r\n"
+       "Connection: keep-alive\r\n"
+       "\r\n",m_request_uri);
   //
   // Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
   //          "Connection: keep-alive\r\n"
@@ -401,6 +385,12 @@ void HTTPClient::Request( char* request){
   {
      getnewlocation();
      link = newloc;
+  }
+  else if(m_phase==4)
+  {
+    while (1) {
+      /* code */
+    }
   }
  //  //while(1);
  // Header.Format ("GET http://207.241.224.2/search.php?query=adele HTTP/1.0\r\n"

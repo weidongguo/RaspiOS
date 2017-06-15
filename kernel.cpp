@@ -152,6 +152,30 @@ void tfooinf(unsigned int count, const void *params){
 	}
 }
 
+char* my_strstr(char *haystack, const char *needle,int &flag) {
+  flag=0;
+    if (haystack == 0 || needle == 0) {
+        return 0;
+    }
+
+    for ( ; *haystack; haystack++) {
+        // Is the needle at this point in the haystack?
+        const char *h, *n;
+        for (h = haystack, n = needle; *h && *n && (*h == *n); ++h, ++n) {
+            // Match is progressing
+        }
+        if (*n == '\0') {
+            // Found match!
+            return haystack;
+        }
+        // Didn't match here.  Try again further along haystack.
+    }
+    // printf("no match\n" );
+    flag=1;
+    return 0;
+}
+
+
 void modifysong(char* song1,char* song2)
 {
 	size_t i,j;
@@ -170,9 +194,29 @@ void modifysong(char* song1,char* song2)
 	*(song2+j)='\0';
 }
 
+void CKernel::modify(char* loc1,char* loc2)
+{
+	 int flag;
+	 char *token, *token1,*saveptr;
+	 token = my_strstr(loc1,"http://",flag);
+	 token1 = strtok_r(token,"/",&saveptr);
+	 if(*saveptr== '/')
+	  	saveptr++;
+	 token1 =  strtok_r(0,"/",&saveptr);
+	 m_Logger.Write (FromKernel, LogNotice, "Final location to send to dnsclient: %s",token1);
+	 strcpy(loc2,token1);
+}
+
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
+
+	HTTPClient *httpclient4 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://ia801607.us.archive.org/12/items/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",4,80);
+
+
+	while (1) {
+		m_Scheduler.Yield();
+	}
 	//Set up Keyboard.
 	 CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
 	if (pKeyboard == 0)
@@ -189,22 +233,26 @@ TShutdownMode CKernel::Run (void)
 	// targetIP->Format(pstring);
 	// m_Logger.Write (FromKernel, LogNotice, "pstring: %s",(const char*)(* pstring));
 	//
-	// HTTPClient *httpclient3 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"/download/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",3,80);
-	//
-	// m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient3: %d",httpclient3->finished);
-	// while(1) {
-	// 	if(httpclient3->finished==1)
-	// 		 break;
-	// 	if(keyboard.IsEndOfLine())
-	// 	{
-	// 		m_Scheduler.Yield();
-	// 	}
-	//
-	// }
-	// m_Logger.Write (FromKernel, LogNotice, "New location(Inside kernel): %s",httpclient3->link);
+	HTTPClient *httpclient3 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"/download/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",3,80);
 
+	m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient3: %d",httpclient3->finished);
+	while(1) {
+		if(httpclient3->finished==1)
+			 break;
+		if(keyboard.IsEndOfLine())
+		{
+			m_Scheduler.Yield();
+		}
+
+	}
+	m_Logger.Write (FromKernel, LogNotice, "New location(Inside kernel): %s",httpclient3->link);
+
+	char modified_location[1000]={'\0'};
+	modify(httpclient3->link,modified_location);
+
+	m_Logger.Write (FromKernel, LogNotice, "Modified location(Inside kernel): %s",modified_location);
 	CIPAddress *targetIP = new CIPAddress;
-	m_Dns.Resolve("ia801607.us.archive.org",targetIP);
+	m_Dns.Resolve(modified_location,targetIP);
 
   m_Scheduler.MsSleep (1500);
 
@@ -213,7 +261,9 @@ TShutdownMode CKernel::Run (void)
 	// 	m_Logger.Write (FromKernel, LogNotice, "IPAddress is NULL...");
 	targetIP->Format(pstring);
 	m_Logger.Write (FromKernel, LogNotice, "pstring: %s",(const char*)(* pstring));
-
+	while (1) {
+		/* code */
+	}
 	// char song[100]={'\0'};
 	// char newsong[100]={'\0'};
 	// strcpy(song,"adele hello world");

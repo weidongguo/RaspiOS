@@ -53,6 +53,7 @@ enum TShutdownMode
 };
 
 void modifysong(char* song,char* newsong);
+char* my_strstr(char *haystack, const char *needle,int &flag);
 
 class CKernel
 {
@@ -63,6 +64,8 @@ public:
 	boolean Initialize (void);
 
 	TShutdownMode Run (void);
+	void modify(char* loc1,char* loc2);
+
 
 	static void TimerHandler (unsigned hTimer, void *pParam, void *pContext);
 	static void KeyPressedHandler (const char *pString);
