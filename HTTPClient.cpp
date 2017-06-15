@@ -48,6 +48,8 @@ u8 Buffer[30 * 1024 * 1024];
 
 #define HOST_IP  		"169.237.118.12"
 
+#define SOUND_CHANNELS   2
+
 //unsigned HTTPClient::s_nInstanceCount = 0;
 
 HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
@@ -158,7 +160,7 @@ void HTTPClient::Request(const char* songName){
 	CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
     CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
 
-    m_pPWMSoundDevice->Playback(Buffer, totalLen / 1, 1, 8);
+    m_pPWMSoundDevice->Playback(Buffer, totalLen / SOUND_CHANNELS, SOUND_CHANNELS, 8);
 	for (unsigned nCount = 0; m_pPWMSoundDevice->PlaybackActive (); nCount++)
 	{
 		

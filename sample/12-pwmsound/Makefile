@@ -12,7 +12,7 @@ EXTRACLEAN = sound.h
 
 include ../Rules.mk
 
-kernel.o: sound.h
+kernel.o: song.h # sound.h
 
 sound.h: sound.h.gz
 	gunzip -c sound.h.gz > sound.h

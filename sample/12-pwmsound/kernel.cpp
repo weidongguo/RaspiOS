@@ -20,7 +20,7 @@
 #include "kernel.h"
 #include <circle/types.h>
 #include <assert.h>
-#include "sound.h"
+#include "song.h"
 
 #define SOUND_SAMPLES		(sizeof Sound / sizeof Sound[0] / SOUND_CHANNELS)
 
