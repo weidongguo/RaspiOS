@@ -333,14 +333,14 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
 	// Set up Keyboard.
-	 CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
-	if (pKeyboard == 0)
-	{
-		m_Logger.Write (FromKernel, LogError, "Keyboard not found");
-		return ShutdownHalt;
-	}
-	pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
-	Keyboard keyboard(pKeyboard);
+	//  CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
+	// if (pKeyboard == 0)
+	// {
+	// 	m_Logger.Write (FromKernel, LogError, "Keyboard not found");
+	// 	return ShutdownHalt;
+	// }
+	// pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
+	// Keyboard keyboard(pKeyboard);
 
 	//Set up HTTP Client.
 	CString IPString;
@@ -348,10 +348,14 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
 
-	HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
+	HTTPClient *httpclient1 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://207.241.224.2/search.php?query=adele",1,80);
+	m_Scheduler.Yield();
+	m_Logger.Write (FromKernel, LogNotice, "Is task1 finished??");
+	m_Scheduler.Yield();
+	HTTPClient *httpclient2 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://207.241.224.2/details/Adele_201703/",2,90);
 
 	while(1) {
-		if(keyboard.IsEndOfLine())
+		// if(keyboard.IsEndOfLine())
 		 	m_Scheduler.Yield();
 	}
 

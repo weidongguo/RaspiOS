@@ -80,13 +80,15 @@ char* my_strstr(char *haystack, const char *needle,int &flag) {
     return 0;
 }
 
-HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen, CSocket *pSocket, unsigned nMaxContentSize, u16 nPort)
+HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen,char* uri,int phase, int nPort, CSocket *pSocket, unsigned nMaxContentSize)
 :	CTask (HTTPD_STACK_SIZE),
 	m_pNetSubSystem (pNetSubSystem),
 	m_pScreen(pScreen),
+  m_request_uri(uri),
+  m_phase(phase),
+  m_nPort (nPort),
 	m_pSocket (pSocket),
 	m_nMaxContentSize (nMaxContentSize),
-	m_nPort (nPort),
 	m_pContentBuffer (0),
 	m_pPWMSoundDevice(pPWMSoundDevice)
 {
@@ -107,16 +109,16 @@ HTTPClient::~HTTPClient (void)
 	m_pContentBuffer = 0;
 
 	m_pNetSubSystem = 0;
-	assert(false);
+	//assert(false);
 	//s_nInstanceCount--;
 }
 
 void HTTPClient::Run (void)
 {
 
-	Keyboard *keyboard = Keyboard::Get();
-	if(keyboard->IsEndOfLine())
-		Request(keyboard->GetBuffer());
+	// Keyboard *keyboard = Keyboard::Get();
+	// if(keyboard->IsEndOfLine())
+		Request(m_request_uri);
 	/*
 	if (m_pSocket == 0)
 	{
@@ -130,13 +132,13 @@ void HTTPClient::Run (void)
 	*/
 }
 
-void HTTPClient::Request(const char* songName){
- 	CLogger::Get()->Write("HTTPClient", LogDebug, "Song name: %s", songName);
-
+void HTTPClient::Request(const char* request){
+ 	CLogger::Get()->Write("HTTPClient", LogDebug, "Request: %s\n", request);
+  CLogger::Get()->Write("HTTPClient", LogDebug, "m_nPort: %d\n", m_nPort);
 	assert (m_pNetSubSystem != 0);
 	m_pSocket = new CSocket (m_pNetSubSystem, IPPROTO_TCP);
 	assert (m_pSocket != 0);
-	CLogger::Get()->Write("HTTPClient", LogDebug, "Binding...");
+	CLogger::Get()->Write("HTTPClient", LogDebug, "Binding... %d",m_phase);
 	if (m_pSocket->Bind (m_nPort) < 0)
 	{
 		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot bind socket (port %u)", m_nPort);
@@ -152,10 +154,10 @@ void HTTPClient::Request(const char* songName){
     // Header.Format ("GET http://207.241.224.2/dontwork HTTP/1.0\r\n"
     //         //  "Connection: keep-alive\r\n"
     //          "\r\n",songName);
-   CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting...");
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Connecting... %d",m_phase);
    int ret = m_pSocket->Connect(targetIP, TARGET_SERVER_PORT);
 
-   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
+   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d %d", ret, m_phase);
    char* ptr = Buffer;
   u32 totalLen = 0;
    int i,temp=1;
@@ -206,9 +208,9 @@ void HTTPClient::Request(const char* songName){
 
 	// send HTTP response header
 
-  Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
+  Header.Format ("GET %s HTTP/1.0\r\n"
            "Connection: keep-alive\r\n"
-           "\r\n",songName);
+           "\r\n",m_request_uri);
   //
   // Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
   //          "Connection: keep-alive\r\n"
@@ -222,7 +224,7 @@ void HTTPClient::Request(const char* songName){
 
 	if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
 	{
-		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot send header");
+		CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot send header %d",m_phase);
 
 		delete m_pSocket;
 		m_pSocket = 0;
@@ -236,11 +238,14 @@ void HTTPClient::Request(const char* songName){
 	//  int i;
   // // // // //
 	for( i = 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d %d", ret, m_phase);
+		CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received %d", i, m_phase);
 		//CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
-    // if(i==70)  // No need to receive the entire html page. Only a part of it is necessary.
-    //   break;
+
+    if(m_phase==1 && i==70)  // No need to receive the entire html page. Only a part of it is necessary.
+      break;
+    if(m_phase==2 && i==75)
+      break;
 		ptr += ret;
 		totalLen += ret;
 	}
@@ -361,8 +366,17 @@ void HTTPClient::Request(const char* songName){
 */
   // memset(phase_2_link,'\0',1000);
   // memset(final_link,'\0',1000);
-   GetLinkForPhase2();
-  CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", phase_2_link);
+  if(m_phase==1)
+  {
+    GetLinkForPhase2();
+    CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", phase_2_link);
+  }
+  else if(m_phase==2)
+  {
+    GetDownloadLink();
+    CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
+  }
+
  //  //while(1);
  // Header.Format ("GET http://207.241.224.2/search.php?query=adele HTTP/1.0\r\n"
  //          "Connection: keep-alive\r\n"
@@ -412,46 +426,47 @@ void HTTPClient::Request(const char* songName){
     //   CLogger::Get()->Write("HTTPClient", LogDebug, "Connection status %d", ret);
 
     // Header for phase 2
-    Header.Format ("GET http://207.241.224.2/details/Adele_201703/ HTTP/1.0\r\n"
-             "Connection: keep-alive\r\n"
-             "\r\n");
+
+    // Header.Format ("GET http://207.241.224.2/details/Adele_201703/ HTTP/1.0\r\n"
+    //          "Connection: keep-alive\r\n"
+    //          "\r\n");
     // Header.Format ("GET http://207.241.224.2%s/ HTTP/1.0\r\n"
     //          "Connection: keep-alive\r\n"
     //          "\r\n",phase_2_link);
 
 
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Header: %s", (const char*)(Header));
-
-		if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
-		{
-			CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot send header");
-
-			delete m_pSocket;
-			m_pSocket = 0;
-
-			return;
-		}
-    CLogger::Get()->Write("HTTPClient", LogDebug, "Header sent..\n");
+		// CLogger::Get()->Write("HTTPClient", LogDebug, "Header: %s", (const char*)(Header));
+    //
+		// if (m_pSocket->Send ((const char *) Header, Header.GetLength (), MSG_DONTWAIT) < 0)
+		// {
+		// 	CLogger::Get ()->Write (FromHTTPDaemon, LogError, "Cannot send header");
+    //
+		// 	delete m_pSocket;
+		// 	m_pSocket = 0;
+    //
+		// 	return;
+		// }
+    // CLogger::Get()->Write("HTTPClient", LogDebug, "Header sent..\n");
 
     //
-		ptr= Buffer;
-		totalLen = 0;
-    // ret = m_pSocket->Receive(ptr, 300, 0);
-
-    for(i= 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
-     CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
-     CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
-     CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
-    //  if(i==80)  // No need to receive the entire html page. Only a part of it is necessary.
-    //    break;
-     ptr += ret;
-     totalLen += ret;
-   }
-  //  CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
-   CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
-   CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
-   CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
-   CLogger::Get()->Write("HTTPClient", LogDebug, "Number of blokcs received: %d", i);
+	// 	ptr= Buffer;
+	// 	totalLen = 0;
+  //   // ret = m_pSocket->Receive(ptr, 300, 0);
+  //
+  //   for(i= 0; (ret = m_pSocket->Receive(ptr, 1600, 0)) > 0; i++) {
+  //    CLogger::Get()->Write("HTTPClient", LogDebug, "Receive status: %d", ret);
+  //    CLogger::Get()->Write("HTTPClient", LogDebug, "Block %d Received", i);
+  //    CLogger::Get()->Write("HTTPClient", LogDebug, "Data... %s", ptr);
+  //   //  if(i==80)  // No need to receive the entire html page. Only a part of it is necessary.
+  //   //    break;
+  //    ptr += ret;
+  //    totalLen += ret;
+  //  }
+  // //  CLogger::Get()->Write("HTTPClient", LogDebug, "Data... \n %s", Buffer);
+  //  CLogger::Get()->Write("HTTPClient", LogDebug, "Done");
+  //  CLogger::Get()->Write("HTTPClient", LogDebug, "Final status: %d", ret);
+  //  CLogger::Get()->Write("HTTPClient", LogDebug, "totalLen: %d", totalLen);
+  //  CLogger::Get()->Write("HTTPClient", LogDebug, "Number of blokcs received: %d", i);
 
     // while (1) {
     //
@@ -499,10 +514,10 @@ void HTTPClient::Request(const char* songName){
                 <div class=\"pull-right\">\\
                   <a class=\"boxy-ttl hover-badge\" href=\"/compress/Hello_20161104\"><span class=\"iconochive-download\"  aria-hidden=\"true\"></span><span class=\"sr-only\">download</span> 8 Files</a><br/>";
 */
-     GetDownloadLink();
-
-		CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
-    while(1);
+    //  GetDownloadLink();
+    //
+		// CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
+    return;
 		Header.Format ("GET /%s HTTP/1.1\r\n"
 			       "Host: " HOST_IP "\r\n"
 			       "Connection: keep-alive\r\n"
@@ -551,6 +566,7 @@ char * HTTPClient::GetLinkForPhase2(){
 	//saveptr = (char *)Buffer;
 	//  token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
   // printf("first %s\n",token );
+  CLogger::Get()->Write("HTTPClient", LogDebug, "Inside GetLinkForPhase2");
   int flag=0;
   token = my_strstr(Buffer,"<div>",flag);
   memset(songlink,'\0',sizeof(songlink));
@@ -573,7 +589,7 @@ char * HTTPClient::GetLinkForPhase2(){
     // printf("third %s\n",saveptr );
 		// token = strtok_r(0,"<a href=\"",&saveptr);
     // printf("fourth %s\n",token1 );
-    // CLogger::Get()->Write("HTTPClient", LogDebug, "token1... \n %s", token1);
+     CLogger::Get()->Write("HTTPClient", LogDebug, "token1... \n %s", token1);
 
 		// char* token1 = strtok_r(token,"\"",&saveptr);  // this token contains the song link.
     //return token1;
@@ -588,7 +604,7 @@ char * HTTPClient::GetLinkForPhase2(){
 		// token = strtok_r(0,"<span class=\"iconochive-",&saveptr);
 		token1 = strtok_r(token,"-",&saveptr);
     token1 = strtok_r(0,"\"",&saveptr); // token1 contains whether it's audio or video or text...
-    // CLogger::Get()->Write("HTTPClient", LogDebug, "token1 (checking for audio)... \n %s", token1);
+     CLogger::Get()->Write("HTTPClient", LogDebug, "token1 (checking for audio)... \n %s", token1);
     token=saveptr;
   // }while(i<2);
 	} while(strcmp(token1,"audio") != 0);
@@ -601,13 +617,14 @@ char * HTTPClient::GetLinkForPhase2(){
 char* HTTPClient::GetDownloadLink(){
 	char* saveptr,*token,*token1,songlink[1000];
   // token = strtok_r(buffer," ", &saveptr); // does nothing important.. just some trimming.
-
+  CLogger::Get()->Write("HTTPClient", LogDebug, "Inside GetDownloadLink");
 	int cnt=0,len;
   int flag=0;
   token = my_strstr(Buffer,"<a class=\"stealth download-pill\"",flag);
 
   if(flag==1)
   	{
+      CLogger::Get()->Write("HTTPClient", LogDebug, "Flag=1");
       // printf("flag=1...\n" );
       token = my_strstr(Buffer,"<div>",flag);
       do{
@@ -617,7 +634,7 @@ char* HTTPClient::GetDownloadLink(){
         token = my_strstr(token,"href=\"",flag);
     		token1 = strtok_r(token,"\"",&saveptr);
     		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
-
+        CLogger::Get()->Write("HTTPClient", LogDebug, "songlink %s",token1);
         // printf("songlink.. %s\n", token1 );
         strcpy(songlink, token1);
     		len = strlen(token1);
@@ -625,6 +642,7 @@ char* HTTPClient::GetDownloadLink(){
       }while(strcmp(token1+len-3,"mp3")!=0); // If last 3 characters are
   }
   else{
+     CLogger::Get()->Write("HTTPClient", LogDebug, "Flag=0");
     // printf("flag=0...\n" );
       token = my_strstr(Buffer,"<div>",flag);
       do {
@@ -634,13 +652,14 @@ char* HTTPClient::GetDownloadLink(){
 
         token1 = strtok_r(token,"\"",&saveptr);
     		token1 = strtok_r(0,"\"",&saveptr);  // this token contains the download link.
-
+        CLogger::Get()->Write("HTTPClient", LogDebug, "songlink %s",token1);
         strcpy(songlink, token1);
         //  printf("songlink.. %s\n", songlink );
     		len = strlen(token1);
         token=saveptr;
       } while(strcmp(token1+len-3,"mp3")!=0);
   }
+  CLogger::Get()->Write("HTTPClient", LogDebug, "songlink %s",songlink);
   //  printf("songlink.. %s\n", songlink );
    strcpy(final_link,songlink);
 	return songlink;

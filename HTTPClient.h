@@ -65,9 +65,12 @@ public:
 	HTTPClient (CNetSubSystem *pNetSubSystem,
 			 CPWMSoundDevice *pPWMSoundDevice,
 			 CScreenDevice *pScreen,
+			  char* uri,
+				int phase,
+				int	    nPort	    = HTTP_PORT,
 		     CSocket	   *pSocket	    = 0,	// is 0 for 1st created instance (listener)
-		     unsigned	    nMaxContentSize = 0,	// buffer size for worker
-		     u16	    nPort	    = HTTP_PORT);
+		     unsigned	    nMaxContentSize = 0	// buffer size for worker
+		     );
 	~HTTPClient (void);
 
 	void Run (void);
@@ -109,6 +112,9 @@ private:
 
 	// from request
 	THTTPRequestMethod m_RequestMethod;
+
+  char *m_request_uri;
+	int m_phase;
 
 	char m_RequestURI[HTTP_MAX_URI+1];		// the URI without host
 	char m_RequestPath[HTTP_MAX_PATH+1];		// the path without parameters
