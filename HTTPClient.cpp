@@ -42,12 +42,12 @@
 
 static const char FromHTTPDaemon[] = "http";
 
-// const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
+const u8 	TARGET_SERVER_IP[] = 	{169,237,118,13};
 // const u8 	TARGET_SERVER_IP[] = 	{207,241,228,108};
 // const u8 	TARGET_SERVER_IP[] = 	{207,241,224,2}; //https::/archive.org
 // const u8 	TARGET_SERVER_IP[] = 	{151,101,65,69}; //https::/stackoverflow.com
 // const u8 	TARGET_SERVER_IP[] = 	{52,25,109,230}; //http://www.geeksforgeeks.org/
-const u8 	TARGET_SERVER_IP[] = 	{207,241,228,127};
+// const u8 	TARGET_SERVER_IP[] = 	{207,241,228,127};
 
 const u16   TARGET_SERVER_PORT =	80;
 
@@ -103,7 +103,7 @@ void HTTPClient::Run (void)
   	if(keyboard->IsEndOfLine())
   		Request(keyboard->GetBuffer());
   }
-  else if(m_phase==2 || m_phase==3 ||m_phase==4){
+  else if(m_phase==2 || m_phase==3 ||m_phase==4||m_phase==5){
      Request(m_request_uri);
   }
 	/*
@@ -212,6 +212,10 @@ void HTTPClient::Request( char* request){
     Header.Format ("GET %s HTTP/1.0\r\n"
        "Connection: keep-alive\r\n"
        "\r\n",m_request_uri);
+	else if(m_phase==5)
+		Header.Format ("GET /query?=https://ia801607.us.archive.org/12/items/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3 HTTP/1.0\r\n"
+		 "Connection: keep-alive\r\n"
+		 "\r\n");
   //
   // Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
   //          "Connection: keep-alive\r\n"
@@ -688,6 +692,8 @@ void HTTPClient::getnewlocation(){
     while (*(saveptr)==' ') {
       saveptr++;
     }
+		token = my_strstr(saveptr,".mp3",flag);
+		*(token+4)='\0';
     CLogger::Get()->Write("HTTPClient", LogDebug, "new location: %s",saveptr);
     strcpy(newloc, saveptr);
 }

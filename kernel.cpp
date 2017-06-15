@@ -211,12 +211,7 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
-	HTTPClient *httpclient4 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://ia801607.us.archive.org/12/items/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",4,80);
 
-
-	while (1) {
-		m_Scheduler.Yield();
-	}
 	//Set up Keyboard.
 	 CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
 	if (pKeyboard == 0)
@@ -226,53 +221,20 @@ TShutdownMode CKernel::Run (void)
 	}
 	pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
 	Keyboard keyboard(pKeyboard);
-  // // Resolving the address
-	// CIPAddress *targetIP = new CIPAddress;
-  // m_Dns.Resolve("www.archive.org",targetIP);
-	// CString *pstring = new CString;
-	// targetIP->Format(pstring);
-	// m_Logger.Write (FromKernel, LogNotice, "pstring: %s",(const char*)(* pstring));
+
+
+	// HTTPClient *httpclient_test = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen," ",5,80);
 	//
-	HTTPClient *httpclient3 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"/download/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",3,80);
-
-	m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient3: %d",httpclient3->finished);
-	while(1) {
-		if(httpclient3->finished==1)
-			 break;
-		if(keyboard.IsEndOfLine())
-		{
-			m_Scheduler.Yield();
-		}
-
-	}
-	m_Logger.Write (FromKernel, LogNotice, "New location(Inside kernel): %s",httpclient3->link);
-
-	char modified_location[1000]={'\0'};
-	modify(httpclient3->link,modified_location);
-
-	m_Logger.Write (FromKernel, LogNotice, "Modified location(Inside kernel): %s",modified_location);
-	CIPAddress *targetIP = new CIPAddress;
-	m_Dns.Resolve(modified_location,targetIP);
-
-  m_Scheduler.MsSleep (1500);
-
-	CString *pstring = new CString;
-	// if(targetIP->IsNull())
-	// 	m_Logger.Write (FromKernel, LogNotice, "IPAddress is NULL...");
-	targetIP->Format(pstring);
-	m_Logger.Write (FromKernel, LogNotice, "pstring: %s",(const char*)(* pstring));
-	while (1) {
-		/* code */
-	}
-	// char song[100]={'\0'};
-	// char newsong[100]={'\0'};
-	// strcpy(song,"adele hello world");
-	// m_Logger.Write (FromKernel, LogNotice, "song is:  %s",song);
-	// modifysong(song,newsong);
-	// m_Logger.Write (FromKernel, LogNotice, "song is:  %s",song);
-	// m_Logger.Write (FromKernel, LogNotice, "newsong is:  %s",newsong);
-	// while (1) {
-	// 	/* code */
+	// m_Logger.Write (FromKernel, LogNotice, "Is task1 finished??");
+	// m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient1: %d",httpclient_test->finished);
+	// while(1) {
+	// 	if(keyboard.IsEndOfLine())
+	// 	{
+	// 		if(httpclient_test->finished==1)
+	// 			 break;
+	// 		m_Scheduler.Yield();
+	// 	}
+	//
 	// }
 
 
@@ -315,9 +277,50 @@ TShutdownMode CKernel::Run (void)
 	char phase_3_link[1000]={'\0'};
 	char phase_3_linke[1000]={'\0'};
 	strcpy(phase_3_link, httpclient2->link);
+
+	//  strcpy(phase_3_link, "/download/Adele_201703/1. Adele - All I ask.mp3");
 	modifysong(phase_3_link,phase_3_linke);
 	m_Logger.Write (FromKernel, LogNotice, "Link for phase 3 (Inside Kernel): %s",phase_3_link);
 	m_Logger.Write (FromKernel, LogNotice, "Link for phase 3 (Inside Kernel): %s",phase_3_linke);
+
+	HTTPClient *httpclient3 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,phase_3_linke,3,100);
+
+	m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient3: %d",httpclient3->finished);
+	while(1) {
+		if(httpclient3->finished==1)
+			 break;
+		if(keyboard.IsEndOfLine())
+		{
+			m_Scheduler.Yield();
+		}
+
+	}
+	m_Logger.Write (FromKernel, LogNotice, "New location(Inside kernel): %s",httpclient3->link);
+	m_Logger.Write (FromKernel, LogNotice, "test here");
+	char modified_location[1000]={'\0'};
+	modify(httpclient3->link,modified_location);
+
+	m_Logger.Write (FromKernel, LogNotice, "Modified location(Inside kernel): %s",modified_location);
+	m_Logger.Write (FromKernel, LogNotice, "test here");
+	CIPAddress *targetIP = new CIPAddress;
+	m_Dns.Resolve(modified_location,targetIP);
+
+  m_Scheduler.MsSleep (1500);
+
+	CString *pstring = new CString;
+	// if(targetIP->IsNull())
+	// 	m_Logger.Write (FromKernel, LogNotice, "IPAddress is NULL...");
+	targetIP->Format(pstring);
+	m_Logger.Write (FromKernel, LogNotice, "pstring: %s",(const char*)(* pstring));
+	while (1) {
+
+	}
+
+	HTTPClient *httpclient4 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://ia801607.us.archive.org/12/items/Adele_201703/1.%20Adele%20-%20All%20I%20Ask.mp3",4,80);
+
+	while (1) {
+		m_Scheduler.Yield();
+	}
 	while (1) {
 		/* code */
 	}
