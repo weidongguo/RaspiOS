@@ -20,6 +20,7 @@
 #include "kernel.h"
 #include <hal/uart.h>
 #include <assert.h>
+#include "screentask.h"
 
 static const char FromKernel[] = "kernel";
 CKernel* CKernel::s_pThis = 0;
@@ -28,9 +29,9 @@ bool EnterIsPressed = false;
 
 CKernel::CKernel (void) :	m_Screen (m_Options.GetWidth (), m_Options.GetHeight ()),
 	m_Timer (&m_Interrupt),
-	m_Logger (m_Options.GetLogLevel (), &m_Timer),
-	m_DWHCI (&m_Interrupt, &m_Timer),
-	m_PWMSoundDevice (&m_Interrupt)
+	m_Logger (m_Options.GetLogLevel (), &m_Timer)
+	//m_DWHCI (&m_Interrupt, &m_Timer),
+	//m_PWMSoundDevice (&m_Interrupt)
 #ifdef ARM_ALLOW_MULTI_CORE	
     ,
     m_CoreManager(&m_Logger, &m_Screen, &m_Memory)
@@ -79,7 +80,7 @@ boolean CKernel::Initialize (void)
 	{
 		bOK = m_Timer.Initialize ();
 	}
-
+/*
 	if (bOK)
 	{
 		bOK = m_DWHCI.Initialize ();
@@ -89,6 +90,7 @@ boolean CKernel::Initialize (void)
 	{
 		bOK = m_Net.Initialize ();
 	}
+	*/
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	if (bOK)
@@ -132,7 +134,7 @@ void tfooinf(unsigned int count, const void *params){
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
-
+	/*
 	// Set up Keyboard.
 	CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
 	if (pKeyboard == 0)
@@ -148,20 +150,58 @@ TShutdownMode CKernel::Run (void)
 	m_Net.GetConfig ()->GetIPAddress ()->Format (&IPString);
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
-
+	*/
 	//HTTPClient *httpclient = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
-
+	/*
 	while(1) {
-		if(keyboard.IsEndOfLine()) {
-			new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
-		}
+		//if(keyboard.IsEndOfLine()) {
+		//	new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen);
+		//}
 
 		m_Scheduler.Yield();
+	}*/
+
+	for (unsigned nTaskID = 1; nTaskID <= 4; nTaskID++)
+	{
+		new CScreenTask (nTaskID, &m_Screen);
 	}
+
+	// the main task
+//	while (1)
+//	{
+		static const char Message[] = "Main ****\n";
+		m_Screen.Write (Message, sizeof Message-1);
+
+		//m_Event.Clear ();
+		//m_Timer.StartKernelTimer (1 * HZ, TimerHandler, this);
+		TimerHandler(0, this, 0);
+	//	m_Event.Wait ();
+//	}
+		while(1);
  
 	return ShutdownHalt;
 }
 
+void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
+{
+	CLogger::Get()->Write (FromKernel, LogNotice, "TimerHandler() enters.");
+	CKernel *pThis = (CKernel *) pParam;
+	assert (pThis != 0);
+
+	//pThis->m_Event.Set ();
+	pThis->m_Timer.StartKernelTimer (1 * HZ, TimerHandler, pThis);
+	
+	EnableIRQs();
+	DataSyncBarrier();
+	DataMemBarrier();
+	InstructionSyncBarrier();
+	pThis->m_Scheduler.Yield();
+//	InstructionSyncBarrier();
+	
+
+}
+
+/*
 void CKernel::KeyPressedHandler (const char *pString)
 {
 	assert (s_pThis != 0);
@@ -178,16 +218,4 @@ void CKernel::KeyPressedHandler (const char *pString)
 		keyboard->AppendToBuffer(pString[i]);
 	}
 }
-
-void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
-{
-#if 1
-	// jump to an invalid address (execution is only allowed below _etext, see circle.ld)
-	void (*pInvalid) (void) = (void (*) (void)) 0x500000;
-
-	(*pInvalid) ();
-#else
-	// alternatively execute an undefined instruction
-	asm volatile (".word 0xFF000000");
-#endif
-}
+*/

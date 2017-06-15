@@ -33,16 +33,18 @@
 #include <circle/types.h>
 #include <circle/util.h>
 
-#include <circle/usb/dwhcidevice.h>
-#include <circle/net/netsubsystem.h>
+//#include <circle/usb/dwhcidevice.h>
+//#include <circle/net/netsubsystem.h>
 #include <circle/sched/scheduler.h>
-#include <circle/pwmsounddevice.h>
+//#include <circle/pwmsounddevice.h>
 //#include <circle/usb/usbkeyboard.h>
+#include <circle/sched/synchronizationevent.h>
 
 #include "CoreManager.h"
 #include "Thread.h"
 #include "HTTPClient.h"
 #include "Keyboard.h"
+#include "RoundRobinSched.h"
 
 enum TShutdownMode
 {
@@ -77,10 +79,12 @@ private:
 	CTimer			m_Timer;
 	CLogger			m_Logger;
 
-  	CDWHCIDevice		m_DWHCI;
-	CScheduler		m_Scheduler;
-	CNetSubSystem		m_Net;
-	CPWMSoundDevice		m_PWMSoundDevice;
+  	//CDWHCIDevice		m_DWHCI;
+	//CScheduler		m_Scheduler;
+	RoundRobinSched		m_Scheduler;
+	CSynchronizationEvent	m_Event;
+	//CNetSubSystem		m_Net;
+	//CPWMSoundDevice		m_PWMSoundDevice;
 
 #ifdef ARM_ALLOW_MULTI_CORE	
 	CoreManager m_CoreManager;

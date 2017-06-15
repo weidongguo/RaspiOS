@@ -4,7 +4,7 @@
 
 CIRCLEHOME = .
 
-OBJS	= main.o kernel.o Thread.o HTTPClient.o CoreManager.o Keyboard.o
+OBJS	= main.o kernel.o Thread.o CoreManager.o Keyboard.o RoundRobinSched.o screentask.o
 
 LIBS = $(CIRCLEHOME)/lib/usb/libusb.a \
   $(CIRCLEHOME)/lib/input/libinput.a \
@@ -14,11 +14,11 @@ LIBS = $(CIRCLEHOME)/lib/usb/libusb.a \
   $(CIRCLEHOME)/lib/libcircle.a
 
 all:
-	cd $(CIRCLEHOME)/lib && $(MAKE)
-	cd $(CIRCLEHOME)/lib/sched && $(MAKE)
-	cd $(CIRCLEHOME)/lib/net && $(MAKE)
-	cd $(CIRCLEHOME)/lib/input && $(MAKE)
 	cd $(CIRCLEHOME)/lib/usb && $(MAKE)
+	cd $(CIRCLEHOME)/lib/input && $(MAKE)
+	cd $(CIRCLEHOME)/lib/net && $(MAKE)
+	cd $(CIRCLEHOME)/lib/sched && $(MAKE)
+	cd $(CIRCLEHOME)/lib && $(MAKE)
 
 	$(MAKE) $(TARGET).img 
 

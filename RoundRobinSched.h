@@ -3,24 +3,24 @@
 
 #include <circle/sched/scheduler.h>
 
-#define QUANTUM_MS	100
+#define QUANTUM_MS	3000
 
 
 class RoundRobinSched : public CScheduler {
-	static RoundRobinSched *s_pThis;
+	//static RoundRobinSched *s_pThis;
 
-	const unsigned long m_nQuantum;
+	unsigned long m_nQuantum;
 
 
 	public:
 		RoundRobinSched(unsigned long quantum = QUANTUM_MS);
 		~RoundRobinSched();
 
-		static RoundRobinSched* Get();	
+		//static RoundRobinSched* Get();	
 		
 
 
 
-}
+};
 
 #endif
