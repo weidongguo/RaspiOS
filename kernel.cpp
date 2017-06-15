@@ -190,15 +190,8 @@ void CKernel::TimerHandler (unsigned hTimer, void *pParam, void *pContext)
 
 	//pThis->m_Event.Set ();
 	pThis->m_Timer.StartKernelTimer (1 * HZ, TimerHandler, pThis);
-	
-	EnableIRQs();
-	DataSyncBarrier();
-	DataMemBarrier();
-	InstructionSyncBarrier();
+ 
 	pThis->m_Scheduler.Yield();
-//	InstructionSyncBarrier();
-	
-
 }
 
 /*

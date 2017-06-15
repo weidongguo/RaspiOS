@@ -5,8 +5,6 @@
 #ifndef _coremanager_h
 #define _coremanager_h
 
-#ifdef ARM_ALLOW_MULTI_CORE
-
 #include <circle/multicore.h>
 #include <circle/screen.h>
 #include <circle/memory.h>
@@ -17,6 +15,7 @@
 #include <circle/memio.h>
 #include <circle/startup.h>
 
+#ifdef ARM_ALLOW_MULTI_CORE
 typedef void (*handler_no_args_t)();
 
 class CoreManager:public CMultiCoreSupport
