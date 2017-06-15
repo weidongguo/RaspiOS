@@ -332,15 +332,15 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
-	// Set up Keyboard.
-	//  CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
-	// if (pKeyboard == 0)
-	// {
-	// 	m_Logger.Write (FromKernel, LogError, "Keyboard not found");
-	// 	return ShutdownHalt;
-	// }
-	// pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
-	// Keyboard keyboard(pKeyboard);
+	//Set up Keyboard.
+	 CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) m_DeviceNameService.GetDevice ("ukbd1", FALSE);
+	if (pKeyboard == 0)
+	{
+		m_Logger.Write (FromKernel, LogError, "Keyboard not found");
+		return ShutdownHalt;
+	}
+	pKeyboard->RegisterKeyPressedHandler (KeyPressedHandler);
+	Keyboard keyboard(pKeyboard);
 
 	//Set up HTTP Client.
 	CString IPString;
@@ -348,15 +348,41 @@ TShutdownMode CKernel::Run (void)
 	m_Logger.Write (FromKernel, LogNotice, "My IP Address is \"%s\"",
 			(const char *) IPString);
 
-	HTTPClient *httpclient1 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://207.241.224.2/search.php?query=adele",1,80);
-	m_Scheduler.Yield();
+	HTTPClient *httpclient1 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen," ",1,80);
+
 	m_Logger.Write (FromKernel, LogNotice, "Is task1 finished??");
-	m_Scheduler.Yield();
-	HTTPClient *httpclient2 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,"http://207.241.224.2/details/Adele_201703/",2,90);
+	m_Logger.Write (FromKernel, LogNotice, "Finished for httpclient1: %d",httpclient1->finished);
+	while(1) {
+		if(keyboard.IsEndOfLine())
+		{
+			if(httpclient1->finished==1)
+				 break;
+			m_Scheduler.Yield();
+		}
+
+	}
+	while (httpclient1->finished==0) {
+		m_Scheduler.Yield();
+	}
+	char phase_2_link[1000]={'\0'};
+	strcpy(phase_2_link, httpclient1->link);
+	m_Logger.Write (FromKernel, LogNotice, "Link for phase 2 (Inside Kernel): %s",phase_2_link);
+	// while (1) {
+	// 	 m_Scheduler.Yield();
+	// }
+	HTTPClient *httpclient2 = new HTTPClient(&m_Net, &m_PWMSoundDevice, &m_Screen,phase_2_link,2,90);
 
 	while(1) {
 		// if(keyboard.IsEndOfLine())
+		   if(httpclient2->finished==1)
+			 			break;
 		 	m_Scheduler.Yield();
+	}
+	char phase_3_link[1000]={'\0'};
+	strcpy(phase_3_link, httpclient2->link);
+	m_Logger.Write (FromKernel, LogNotice, "Link for phase 3 (Inside Kernel): %s",phase_3_link);
+	while (1) {
+		/* code */
 	}
 
 	return ShutdownHalt;

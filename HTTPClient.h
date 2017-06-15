@@ -69,7 +69,8 @@ public:
 				int phase,
 				int	    nPort	    = HTTP_PORT,
 		     CSocket	   *pSocket	    = 0,	// is 0 for 1st created instance (listener)
-		     unsigned	    nMaxContentSize = 0	// buffer size for worker
+		     unsigned	    nMaxContentSize = 0,	// buffer size for worker
+				 int finished = 0
 		     );
 	~HTTPClient (void);
 
@@ -87,6 +88,8 @@ public:
 				        unsigned    *pLength,	// in: buffer size, out: content length
 				        const char **ppContentType) = 0; // set this if not "text/html"
 				        */
+		int finished;
+		char* link;
 
 private:
 	void Listener (void);			// accepts incoming connections and creates worker task
@@ -115,6 +118,7 @@ private:
 
   char *m_request_uri;
 	int m_phase;
+
 
 	char m_RequestURI[HTTP_MAX_URI+1];		// the URI without host
 	char m_RequestPath[HTTP_MAX_PATH+1];		// the path without parameters

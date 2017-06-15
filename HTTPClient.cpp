@@ -80,7 +80,7 @@ char* my_strstr(char *haystack, const char *needle,int &flag) {
     return 0;
 }
 
-HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen,char* uri,int phase, int nPort, CSocket *pSocket, unsigned nMaxContentSize)
+HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSoundDevice, CScreenDevice *pScreen,char* uri,int phase, int nPort, CSocket *pSocket, unsigned nMaxContentSize, int finish)
 :	CTask (HTTPD_STACK_SIZE),
 	m_pNetSubSystem (pNetSubSystem),
 	m_pScreen(pScreen),
@@ -90,10 +90,11 @@ HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSound
 	m_pSocket (pSocket),
 	m_nMaxContentSize (nMaxContentSize),
 	m_pContentBuffer (0),
+  finished(finish),
 	m_pPWMSoundDevice(pPWMSoundDevice)
 {
 	//s_nInstanceCount++;
-
+  finished = 0;
 	if (m_nMaxContentSize > 0)
 	{
 		m_pContentBuffer = new u8[m_nMaxContentSize];
@@ -104,7 +105,7 @@ HTTPClient::HTTPClient (CNetSubSystem *pNetSubSystem, CPWMSoundDevice *pPWMSound
 HTTPClient::~HTTPClient (void)
 {
 	//assert (m_pSocket == 0);
-
+  finished = 1;
 	delete m_pContentBuffer;
 	m_pContentBuffer = 0;
 
@@ -115,10 +116,14 @@ HTTPClient::~HTTPClient (void)
 
 void HTTPClient::Run (void)
 {
-
-	// Keyboard *keyboard = Keyboard::Get();
-	// if(keyboard->IsEndOfLine())
-		Request(m_request_uri);
+  if(m_phase==1){
+    Keyboard *keyboard = Keyboard::Get();
+  	if(keyboard->IsEndOfLine())
+  		Request(keyboard->GetBuffer());
+  }
+  else if(m_phase==2){
+     Request(m_request_uri);
+  }
 	/*
 	if (m_pSocket == 0)
 	{
@@ -208,7 +213,12 @@ void HTTPClient::Request(const char* request){
 
 	// send HTTP response header
 
-  Header.Format ("GET %s HTTP/1.0\r\n"
+  if(m_phase==1)
+    Header.Format ("GET http://207.241.224.2/search.php?query=%s HTTP/1.0\r\n"
+             "Connection: keep-alive\r\n"
+             "\r\n",request);
+  else if(m_phase==2)
+    Header.Format ("GET http://207.241.224.2%s/ HTTP/1.0\r\n"
            "Connection: keep-alive\r\n"
            "\r\n",m_request_uri);
   //
@@ -369,12 +379,16 @@ void HTTPClient::Request(const char* request){
   if(m_phase==1)
   {
     GetLinkForPhase2();
+    link =  phase_2_link;
     CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", phase_2_link);
+    CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", link);
   }
   else if(m_phase==2)
   {
     GetDownloadLink();
+    link = final_link;
     CLogger::Get()->Write("HTTPClient", LogDebug, "Download Link... \n %s", final_link);
+    CLogger::Get()->Write("HTTPClient", LogDebug, "Phase 2 Link... \n %s", link);
   }
 
  //  //while(1);
