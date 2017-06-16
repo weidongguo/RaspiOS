@@ -107,8 +107,8 @@ TShutdownMode CKernel::Run (void)
 	CTimer::Get()->MsDelay(100);
 
 	while(1) {
-		m_Logger.Write (FromKernel, LogNotice, "core %d is about to yield in main()", CScheduler::GetCore ());
-		m_Scheduler.Yield();
+		m_Logger.Write (FromKernel, LogNotice, "core %d is about to yield in main()", m_Scheduler.schedNum);
+		m_Scheduler.startFromSecondary();
 	}
 
 	return ShutdownHalt;
