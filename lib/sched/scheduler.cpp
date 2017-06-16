@@ -23,15 +23,15 @@
 #include <assert.h>
 #include <circle/spinlock.h>
 
-CTask *m_pTask[MAX_TASKS];
-unsigned m_nTasks (0);
+CTask *m_pTask[MAX_TASKS]; // shared list of tasks
+unsigned m_nTasks (0); // shared number of tasks in m_pTask
 
-static CSpinLock getCoreSpinLock;
-static CSpinLock SpinLock;
+static CSpinLock getCoreSpinLock; // spinlock for acessing current core number (is this necesssary?)
+static CSpinLock SpinLock; // spinlock for acessing m_pTask and m_nTask
 
-static const char FromScheduler[] = "sched";
+static const char FromScheduler[] = "sched"; // const used in printing messages
 
-CScheduler *CScheduler::s_pThis [CORES] = {0};
+CScheduler *CScheduler::s_pThis [CORES] = {0}; // list of scheduler objects indexed by the # of the core theyre running on
 
 CScheduler::CScheduler (void)
 :	//m_nTasks (0),
@@ -44,6 +44,8 @@ CScheduler::CScheduler (void)
 	m_pCurrent = new CTask (0);		// main task currently running on this core
 	m_pCurrent->SetState(TaskStateRunning);
 	assert (m_pCurrent != 0);
+
+	schedNum = GetCore();
 }
 
 CScheduler::~CScheduler (void)
@@ -63,50 +65,62 @@ CScheduler::~CScheduler (void)
 
 void CScheduler::startFromSecondary (void)
 {
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is in startFromSecondary", CScheduler::GetCore ());
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is in startFromSecondary", CScheduler::GetCore ());
 
 	// only choose one
-	m_pCurrent->SetState (TaskStateTerminated); // get rid of original task so it doesnt clutter up list of tasks
+	//m_pCurrent->SetState (TaskStateTerminated); // get rid of original task so it doesnt clutter up list of tasks
 	//m_pCurrent->SetState (TaskStateBlocked);  // prevent returning to original task until it is woken in case we want to go back to it
 
-	Yield();
+	while(true){
+		Yield();
+	}
 }
 
 
 void CScheduler::Yield (void)
 {
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is in yield()", CScheduler::GetCore ());
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is in yield() using scheduler %d", CScheduler::GetCore (), schedNum);
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is in yield()", schedNum);
+	unsigned oldTaskNum = m_nCurrent;
 
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get lock", CScheduler::GetCore ());
+	CTimer::Get()->MsDelay(100);
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get lock", CScheduler::GetCore ());
 	SpinLock.Acquire ();
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got lock", CScheduler::GetCore ());
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got lock", CScheduler::GetCore ());
 
 	while ((m_nCurrent = GetNextTask ()) == MAX_TASKS)	// no task is ready
 	{
-		CLogger::Get ()->Write ("scheduler", LogNotice, "core %d releasing lock", CScheduler::GetCore ());
+		//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d releasing lock", CScheduler::GetCore ());
 		SpinLock.Release ();
 
-		CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get a task but none were available", CScheduler::GetCore ());
-    CTimer::Get()->MsDelay(100); // idle a bit before checking for new tasks
+		//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get a task but none were available", CScheduler::GetCore ());
+    CTimer::Get()->MsDelay(10); // idle a bit before checking for new tasks
 
-		CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get lock", CScheduler::GetCore ());
+		//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d tried to get lock", CScheduler::GetCore ());
 		SpinLock.Acquire ();
-		CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got lock", CScheduler::GetCore ());
+		//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got lock", CScheduler::GetCore ());
 
 		assert (m_nTasks > 0);
 	}
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got task %u", CScheduler::GetCore (), m_nCurrent);
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d got task %u", schedNum, m_nCurrent);
 
 	assert (m_nCurrent < MAX_TASKS);
 	CTask *pNext = m_pTask[m_nCurrent];
 	assert (pNext != 0);
 	if (m_pCurrent == pNext)
 	{
-		CLogger::Get ()->Write ("scheduler", LogNotice, "core %d releasing lock", CScheduler::GetCore ());
+		//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d going back to previous task", schedNum);
 		SpinLock.Release ();
 
 		return;
 	}
+
+	// used for converting TTaskState to string for printing debug messages
+	const char *TaskStates[] = 	{"TaskStateReady", "TaskStateBlocked", "TaskStateSleeping", "TaskStateTerminated", "TaskStateUnknown", "TaskStateRunning"};
+
+	const char *oldState = TaskStates[m_pCurrent->GetState()];
+
+	assert (m_pCurrent != 0);
 
 	if (m_pCurrent->GetState() == TaskStateRunning)
 	{
@@ -117,14 +131,17 @@ void CScheduler::Yield (void)
 	m_pCurrent = pNext;
 	TTaskRegisters *pNewRegs = m_pCurrent->GetRegs ();
 
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d releasing lock", CScheduler::GetCore ());
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d releasing lock", CScheduler::GetCore ());
   SpinLock.Release ();
 
 
 	assert (pOldRegs != 0);
 	assert (pNewRegs != 0);
 
-	CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is about to taskswitch", CScheduler::GetCore ());
+	//const char *TaskStates[] = 	{"TaskStateReady", "TaskStateBlocked", "TaskStateSleeping", "TaskStateTerminated", "TaskStateUnknown", "TaskStateRunning"};
+
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is about to taskswitch to task %u from task %u.  m_nTasks = %u", CScheduler::GetCore (), m_nCurrent, oldTaskNum, m_nTasks);
+	//CLogger::Get ()->Write ("scheduler", LogNotice, "core %d is about to taskswitch to task %u from task %u.", schedNum, m_nCurrent, oldTaskNum);
 	TaskSwitch (pOldRegs, pNewRegs);
 }
 
@@ -190,6 +207,7 @@ void CScheduler::AddTask (CTask *pTask)
 		{
 			m_pTask[i] = pTask;
 
+			SpinLock.Release ();
 			return;
 		}
 	}
@@ -288,11 +306,11 @@ unsigned CScheduler::GetNextTask (void)
 			return nTask;
 
 		case TaskStateRunning:
-			if (m_pCurrent != pTask){
-				continue;
-			}
-			else{
+			if (pTask == m_pCurrent){
 				return nTask;
+			}
+			else {
+				continue;
 			}
 
 		case TaskStateBlocked:
