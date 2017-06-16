@@ -40,6 +40,8 @@ public:
 
 	static int GetCore (void);
 
+	int schedNum; // stores the unique number for this scheduler so the schedulers can be told apart
+
 private:
 	void AddTask (CTask *pTask);
 	friend class CTask;
@@ -59,6 +61,8 @@ private:
 	unsigned m_nCurrent;			// index into m_pTask
 
 	static CScheduler *s_pThis[CORES];
+
+
 };
 
 #endif
